@@ -155,32 +155,20 @@ class Pix2PixDiscriminator(nn.Module):
             kernel_size=5, stride=1, padding=2)
 
         self.conv2 = nn.Conv2d(
-            in_channels=n_filters,
-            out_channels=n_filters*2,
-            kernel_size=5,
-            stride=2,
-            padding=2)
+            in_channels=n_filters, out_channels=n_filters*2,
+            kernel_size=5, stride=2, padding=2)
 
         self.conv3 = nn.Conv2d(
-            in_channels=n_filters*2,
-            out_channels=n_filters*4,
-            kernel_size=5,
-            stride=1,
-            padding=2)
+            in_channels=n_filters*2, out_channels=n_filters*4,
+            kernel_size=5, stride=1, padding=2)
 
         self.conv4 = nn.Conv2d(
-            in_channels=n_filters*4,
-            out_channels=n_filters*8,
-            kernel_size=5,
-            stride=2,
-            padding=2)
+            in_channels=n_filters*4, out_channels=n_filters*8,
+            kernel_size=5, stride=2, padding=2)
 
         self.conv5 = nn.Conv2d(
-            in_channels=n_filters*8,
-            out_channels=1,
-            kernel_size=5,
-            stride=1,
-            padding=2)
+            in_channels=n_filters*8, out_channels=1,
+            kernel_size=5, stride=1, padding=2)
 
     def forward(self, x):
         x = self.conv1(x)
