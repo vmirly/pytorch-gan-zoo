@@ -180,5 +180,6 @@ class Pix2PixDiscriminator(nn.Module):
         x = self.conv4(x)
         x = torch.relu(x)
         x = self.conv5(x)
+        x = torch.sigmoid(x)
 
         return x
