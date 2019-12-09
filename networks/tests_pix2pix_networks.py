@@ -47,5 +47,3 @@ class TestPix2PixNetworks(unittest.TestCase):
 
         input_fake = torch.cat([example_a, output_a], axis=1)
         print(input_fake.shape)
-
-
