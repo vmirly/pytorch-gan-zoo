@@ -21,8 +21,8 @@ def main(args):
     lossfn_rec = constants.RECONSTRUCTION_LOSS[args.rec_loss]
     lossfn_G, lossfn_D_real, lossfn_D_fake = constants.GAN_LOSS[args.gan_loss]
 
-    generator = p2p_net.Pix2PixGenerator()
-    discriminator = p2p_net.Pix2PixDiscriminator()
+    generator = p2p_net.Pix2PixGenerator().to(device)
+    discriminator = p2p_net.Pix2PixDiscriminator().to(device)
 
     optimizer_D = optim.Adam(
         generator.parameters(), lr=args.learning_rate,
@@ -96,6 +96,8 @@ def main(args):
     for epoch in range(args.num_epochs):
 
         for i, (batch_x, batch_y) in enumerate(dataloader):
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
             losses_g = training_step_G(batch_x, batch_y)
 
             losses_d = training_step_D(batch_x, batch_y)
@@ -113,7 +115,7 @@ def parse(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--train_path', type=str, required=True,
                         help='The path to the training directory')
-    parser.add_argument('--ngpu', type=int, default=0,
+    parser.add_argument('--ngpu', type=int, default=1,
                         help='Number of GPUs to use')
     parser.add_argument('--gan_loss', type=str, required=True,
                         choices=['vanilla', 'wgan'],
