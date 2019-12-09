@@ -10,12 +10,14 @@ def main(args):
         else "cpu")
     print('Device:', device)
 
+
 def parse(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--ngpu', default=0, help='Number of GPUs to use')
 
     args = parser.parse_args()
     return args
+
 
 if __name__ == '__main__':
     args = parse(sys.argv[1:])
