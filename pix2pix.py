@@ -108,10 +108,12 @@ def main(args):
                                 losses_g['rec'], losses_g['errG'],
                                 losses_d['errD']))
         if epoch % 100 == 0:
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': generator.state_dict(),
-            }, '/scratch/mirjalil/checkpoints/model-{}.tch'.format(epoch))
+            torch.save(
+                {
+                    'epoch': epoch,
+                    'model_state_dict': generator.state_dict()
+                },
+                '/scratch/mirjalil/checkpoints/model-{}.tch'.format(epoch))
 
     return losses_g, losses_d
 
