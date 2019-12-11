@@ -104,9 +104,14 @@ def main(args):
 
             if i % args.log_interval == 0:
                 print('Epoch {}/{} Iter {} Rec: {:.3f} G: {:.3f} D: {}'
-                      ''.format(epoch, args.num_epochs, i,
+                      ''.format(epoch, args.num_epochs, i, len(dataloader),
                                 losses_g['rec'], losses_g['errG'],
                                 losses_d['errD']))
+        if epoch % 100 == 0:
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': generator.state_dict(),
+            }, '/scratch/mirjalil/checkpoints/model-{}.tch'.format(epoch))
 
     return losses_g, losses_d
 
