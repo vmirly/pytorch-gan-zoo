@@ -171,6 +171,7 @@ def parse(argv):
 
     ckpt_path = pathlib.Path(args.checkpoint_dir)
     ckpt_path.mkdir(parents=True)
+
     return args
 
 
