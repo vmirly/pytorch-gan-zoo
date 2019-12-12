@@ -12,12 +12,14 @@ class PairedImg2ImgDataset(Dataset):
             transform,
             paired_transform=None,
             preload=False,
-            ext='jpg'):
+            ext='jpg',
+            mode='train'):
         """
         """
         self.paired_transform = paired_transform
         self.transform = transform
         self.preload = preload
+        self.mode = mode
 
         image_dir = pathlib.Path(image_dir)
 
@@ -32,10 +34,11 @@ class PairedImg2ImgDataset(Dataset):
         return len(self.files)
 
     def __getitem__(self, index):
+        filename = self.files[index]
         if self.preload:
             img = self.images[index]
         else:
-            img = Image.open(self.files[index])
+            img = Image.open(filename)
 
         img_width, img_height = img.size
         img_domain_a = img.crop([0, 0, img_width//2, img_height])
@@ -48,4 +51,7 @@ class PairedImg2ImgDataset(Dataset):
         x = self.transform(img_domain_a)
         y = self.transform(img_domain_b)
 
-        return x, y
+        if self.mode == 'train':
+            return x, y
+        else:
+            return x, y, (filename,)
