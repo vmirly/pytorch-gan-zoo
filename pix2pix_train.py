@@ -1,3 +1,6 @@
+import os
+import pathlib
+import time
 import sys
 import argparse
 import torch
@@ -87,7 +90,8 @@ def main(args):
     dataset = PairedImg2ImgDataset(
         image_dir=args.train_path,
         paired_transform=paired_tsfm,
-        transform=tsfm)
+        transform=tsfm,
+        mode='train')
 
     dataloader = DataLoader(
         dataset, batch_size=args.batch_size,
@@ -120,32 +124,53 @@ def main(args):
 
 def parse(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--train_path', type=str, required=True,
-                        help='The path to the training directory')
-    parser.add_argument('--ngpu', type=int, default=1,
-                        help='Number of GPUs to use')
-    parser.add_argument('--gan_loss', type=str, required=True,
-                        choices=['vanilla', 'wgan'],
-                        help='The type of GAN loss to sue for training')
-    parser.add_argument('--rec_loss', required=True,
-                        choices=['l1', 'l2', 'ce'],
-                        help='The type of reconstruction loss')
-    parser.add_argument('--lambda_gan', type=float, default=1.0,
-                        help='Lambda for the weight of gan loss')
-    parser.add_argument('--batch_size', type=int, default=64,
-                        help='Batch size of training')
-    parser.add_argument('--num_workers', type=int, default=1,
-                        help='Number of workers for loading data')
-    parser.add_argument('--learning_rate', type=float, default=1e-3,
-                        help='Learning rate')
-    parser.add_argument('--num_epochs', type=int, default=20,
-                        help='Number of epochs for training the model')
-    parser.add_argument('--log_interval', type=int, default=100,
-                        help='The interval steps to print the loss values')
-    parser.add_argument('--beta1', type=float, default=0.5,
-                        help='Bets for the Adam optimizer')
+    parser.add_argument(
+            '--train_path', type=str, required=True,
+            help='The path to the training directory')
+    parser.add_argument(
+            '--ngpu', type=int, default=1,
+            help='Number of GPUs to use')
+    parser.add_argument(
+            '--gan_loss', type=str, required=True,
+            choices=['vanilla', 'wgan'],
+            help='The type of GAN loss to sue for training')
+    parser.add_argument(
+            '--rec_loss', required=True,
+            choices=['l1', 'l2', 'ce'],
+            help='The type of reconstruction loss')
+    parser.add_argument(
+            '--lambda_gan', type=float, default=1.0,
+            help='Lambda for the weight of gan loss')
+    parser.add_argument(
+            '--batch_size', type=int, default=64,
+            help='Batch size of training')
+    parser.add_argument(
+            '--num_workers', type=int, default=1,
+            help='Number of workers for loading data')
+    parser.add_argument(
+            '--learning_rate', type=float, default=1e-3,
+            help='Learning rate')
+    parser.add_argument(
+            '--num_epochs', type=int, default=20,
+            help='Number of epochs for training the model')
+    parser.add_argument(
+            '--log_interval', type=int, default=100,
+            help='The interval steps to print the loss values')
+    parser.add_argument(
+            '--beta1', type=float, default=0.5,
+            help='Bets for the Adam optimizer')
+    parser.add_argument(
+            '--checkpoint_dir', type=str, default='/tmp/checkpoints/',
+            help='Checkpoint directory for training')
 
     args = parser.parse_args()
+
+    if args.checkpoint_dir == '/tmp/checkpoints/':
+        timestr = time.strftime('%m_%d_%Y-%H_%M_%S')
+        args.checkpoint_dir = os.path.join(args.checkpoint_dir, timestr)
+
+    ckpt_path = pathlib.Path(args.checkpoint_dir)
+    ckpt_path.mkdir(parents=True)
     return args
 
 
