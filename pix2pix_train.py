@@ -45,7 +45,7 @@ def main(args):
         d_fake = discriminator(input_fake)
         err_G = lossfn_G(d_fake)
 
-        loss_g = rec_loss + err_G*args.lambda_gan
+        loss_g = rec_loss + args.lambda_gan*err_G
 
         loss_g.backward()
         optimizer_G.step()
@@ -100,24 +100,31 @@ def main(args):
     for epoch in range(args.num_epochs):
 
         for i, (batch_x, batch_y) in enumerate(dataloader):
+
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
+
             losses_g = training_step_G(batch_x, batch_y)
 
             losses_d = training_step_D(batch_x, batch_y)
 
             if i % args.log_interval == 0:
-                print('Epoch {}/{} Iter {} Rec: {:.3f} G: {:.3f} D: {}'
+                print('Epoch {}/{} Iter {}/{} Rec: {:.3f} G: {:.3f} D: {}'
                       ''.format(epoch, args.num_epochs, i, len(dataloader),
                                 losses_g['rec'], losses_g['errG'],
                                 losses_d['errD']))
-        if epoch % 100 == 0:
+
+        if epoch % 10 == 0:
             torch.save(
                 {
                     'epoch': epoch,
                     'model_state_dict': generator.state_dict()
                 },
-                '/scratch/mirjalil/checkpoints/model-{}.tch'.format(epoch))
+                os.path.join(
+                    args.checkpoint_dir,
+                    'model-{}.tch'.format(epoch)
+                )
+            )
 
     return losses_g, losses_d
 
