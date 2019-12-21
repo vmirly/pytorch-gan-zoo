@@ -7,6 +7,7 @@ def convert_tensor2image(
         t_image,
         unnormalize):
 
+    print(t_image.shape, t_image.dtype)
     if len(t_image.shape) == 0:
         t_image = torch.squeeze(t_image, dim=0)
 
