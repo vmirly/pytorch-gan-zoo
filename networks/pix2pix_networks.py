@@ -98,19 +98,19 @@ class Pix2PixGenerator(nn.Module):
         # Conctractive layers:
         x1 = F.leaky_relu(self.conv1a(x))
         x1 = F.leaky_relu(self.conv1b(x1))
-        x1pool = F.max_pool2d(x1, 2)
+        x1pool = F.dropout(F.max_pool2d(x1, 2))
 
         x2 = F.leaky_relu(self.conv2a(x1pool))
         x2 = F.leaky_relu(self.conv2b(x2))
-        x2pool = F.max_pool2d(x2, 2)
+        x2pool = F.dropout(F.max_pool2d(x2, 2))
 
         x3 = F.leaky_relu(self.conv3a(x2pool))
         x3 = F.leaky_relu(self.conv3b(x3))
-        x3pool = F.max_pool2d(x3, 2)
+        x3pool = F.dropout(F.max_pool2d(x3, 2))
 
         x4 = F.leaky_relu(self.conv4a(x3pool))
         x4 = F.leaky_relu(self.conv4b(x4))
-        x4pool = F.max_pool2d(x4, 2)
+        x4pool = F.dropout(F.max_pool2d(x4, 2))
 
         x5 = F.leaky_relu(self.conv5a(x4pool))
         x5 = F.leaky_relu(self.conv5b(x5))
