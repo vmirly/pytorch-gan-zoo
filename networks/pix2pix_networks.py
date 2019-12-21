@@ -12,6 +12,7 @@ class ConvBlock(nn.Module):
             name,
             stride=1,
             padding=0,
+            bias=False,
             activation='relu',
             bn=False,
             transposed=False,
@@ -30,7 +31,7 @@ class ConvBlock(nn.Module):
                     kernel_size=kernel_size,
                     stride=stride,
                     padding=padding,
-                    bias=False))
+                    bias=bias))
         else:
             self.main.add_module(
                 'tconv-{}'.format(name),
@@ -40,7 +41,8 @@ class ConvBlock(nn.Module):
                     kernel_size=kernel_size,
                     stride=stride,
                     padding=padding,
-                    output_padding=0))
+                    output_padding=0,
+                    bias=bias))
 
         if bn:
             self.main.add_module(
