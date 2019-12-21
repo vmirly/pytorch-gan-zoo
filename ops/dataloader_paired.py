@@ -1,3 +1,4 @@
+import os
 import pathlib
 from PIL import Image
 from torch.utils.data import Dataset
@@ -54,4 +55,4 @@ class PairedImg2ImgDataset(Dataset):
         if self.mode == 'train':
             return x, y
         else:
-            return x, y, (filename,)
+            return x, y, os.path.basename(filename)
