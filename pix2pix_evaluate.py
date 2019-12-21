@@ -21,7 +21,10 @@ def main(args):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    generator = p2p_net.Pix2PixGenerator().to(device)
+    generator = p2p_net.Pix2PixGenerator(n_filters=args.nf).to(device)
+    saved_checkpoint = torch.load(args.model_path)
+    generator.load_state_dict(saved_checkpoint['model_state_dict'])
+    generator.eval()
 
     tsfm = transforms.Compose([
         transforms.ToTensor(),
@@ -31,7 +34,7 @@ def main(args):
     ])
 
     dataset = PairedImg2ImgDataset(
-        image_dir=args.eval_path,
+        image_dir=args.input_dir,
         paired_transform=None,
         transform=tsfm,
         mode='eval')
@@ -41,16 +44,34 @@ def main(args):
         shuffle=False, num_workers=args.num_workers)
 
     for i, (batch_x, batch_y, batch_f) in enumerate(dataloader):
-        batch_x = batch_x.to(device)
-        batch_y = batch_y.to(device)
 
-        outputs = generator(batch_x)
+        if not args.y2x:
+            batch_x_dev = batch_x.to(device)
+            batch_y_dev = batch_y.to(device)
+        else:  # swap the x & y
+            batch_x_dev = batch_y.to(device)
+            batch_y_dev = batch_x.to(device)
 
-        for f, out in zip(batch_f, outputs):
-            img_out = convert_tensor2image(out, unnormalize=True)
-            print(f)
+        outputs = generator(batch_x_dev)
+
+        for f, out, x, y in zip(batch_f, outputs, batch_x_dev, batch_y_dev):
+            img_out = convert_tensor2image(
+                out.detach().cpu(),
+                unnormalize=True)
             img_out.save(
                 os.path.join(args.output_dir, f))
+
+            img_x = convert_tensor2image(
+                x.detach().cpu(),
+                unnormalize=True)
+            img_x.save(
+                os.path.join(args.output_dir, f[:-4] + '-inp.jpg'))
+
+            img_y = convert_tensor2image(
+                y.detach().cpu(),
+                unnormalize=True)
+            img_y.save(
+                os.path.join(args.output_dir, f[:-4] + '-target.jpg'))
 
     return outputs
 
@@ -58,13 +79,19 @@ def main(args):
 def parse(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--eval_path', type=str, required=True,
-        help='The path to the training directory')
+        '--input_dir', type=str, required=True,
+        help='The path to the input image directory')
+    parser.add_argument(
+        '--y2x', type=int, default=0,
+        help='Flag for transforming y to x (instead of x to y)')
+    parser.add_argument(
+        '--model_path', type=str, required=True,
+        help='The path to the saved model')
     parser.add_argument(
         '--ngpu', type=int, default=1,
         help='Number of GPUs to use')
     parser.add_argument(
-        '--batch_size', type=int, default=64,
+        '--batch_size', type=int, default=8,
         help='Batch size of training')
     parser.add_argument(
         '--num_workers', type=int, default=1,
@@ -73,11 +100,16 @@ def parse(argv):
         '--num_epochs', type=int, default=20,
         help='Number of epochs for training the model')
     parser.add_argument(
+        '--nf', type=int, required=True,
+        help='Number of filters for the generator network')
+    parser.add_argument(
         '--output_dir', type=str,
         default='/tmp/pix2pix-outputs/',
         help='Bets for the Adam optimizer')
 
     args = parser.parse_args()
+
+    args.y2x = bool(args.y2x)
 
     if args.output_dir == '/tmp/pix2pix-outputs/':
         timestr = time.strftime('%m_%d_%Y-%H_%M_%S')

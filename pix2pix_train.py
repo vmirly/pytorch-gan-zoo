@@ -101,12 +101,16 @@ def main(args):
 
         for i, (batch_x, batch_y) in enumerate(dataloader):
 
-            batch_x = batch_x.to(device)
-            batch_y = batch_y.to(device)
+            if not args.y2x:
+                batch_x_dev = batch_x.to(device)
+                batch_y_dev = batch_y.to(device)
+            else:  # swap the x & y
+                batch_x_dev = batch_y.to(device)
+                batch_y_dev = batch_x.to(device)
 
-            losses_g = training_step_G(batch_x, batch_y)
+            losses_g = training_step_G(batch_x_dev, batch_y_dev)
 
-            losses_d = training_step_D(batch_x, batch_y)
+            losses_d = training_step_D(batch_x_dev, batch_y_dev)
 
             if i % args.log_interval == 0:
                 print('Epoch {}/{} Iter {}/{} Rec: {:.3f} G: {:.3f} D: {}'
@@ -134,6 +138,9 @@ def parse(argv):
     parser.add_argument(
             '--train_path', type=str, required=True,
             help='The path to the training directory')
+    parser.add_argument(
+            '--y2x', type=int, default=0,
+            help='Transforming y to x (instead of x to y)')
     parser.add_argument(
             '--ngpu', type=int, default=1,
             help='Number of GPUs to use')
@@ -174,6 +181,8 @@ def parse(argv):
             help='Checkpoint directory for training')
 
     args = parser.parse_args()
+
+    args.y2x = bool(args.y2x)
 
     if args.checkpoint_dir == '/tmp/checkpoints/':
         timestr = time.strftime('%m_%d_%Y-%H_%M_%S')
