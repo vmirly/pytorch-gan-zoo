@@ -17,22 +17,22 @@ from ops import paired_image_transforms
 def main(args):
     print(args)
     device = torch.device(
-        "cuda:0" if (torch.cuda.is_available() and args.ngpu > 0)
+        "cuda:1" if (torch.cuda.is_available() and args.ngpu > 0)
         else "cpu")
     print('Device:', device)
 
     lossfn_rec = constants.RECONSTRUCTION_LOSS[args.rec_loss]
     lossfn_G, lossfn_D_real, lossfn_D_fake = constants.GAN_LOSS[args.gan_loss]
 
-    generator = p2p_net.Pix2PixGenerator().to(device)
-    discriminator = p2p_net.Pix2PixDiscriminator().to(device)
+    generator = p2p_net.Pix2PixGenerator(n_filters=args.nf).to(device)
+    discriminator = p2p_net.Pix2PixDiscriminator(n_filters=args.nf).to(device)
 
     optimizer_D = optim.Adam(
         generator.parameters(), lr=args.learning_rate,
-        betas=(args.beta1, 0.999))
+        betas=(args.beta1, 0.9))
     optimizer_G = optim.Adam(
         discriminator.parameters(), lr=args.learning_rate,
-        betas=(args.beta1, 0.999))
+        betas=(args.beta1, 0.9))
 
     def training_step_G(batch_x, batch_y):
         generator.zero_grad()
@@ -45,7 +45,7 @@ def main(args):
         d_fake = discriminator(input_fake)
         err_G = lossfn_G(d_fake)
 
-        loss_g = rec_loss + args.lambda_gan*err_G
+        loss_g = args.lambda_rec * rec_loss + err_G
 
         loss_g.backward()
         optimizer_G.step()
@@ -78,7 +78,7 @@ def main(args):
                 'errD': err_D.cpu().item()}
 
     paired_tsfm = transforms.Compose([
-        paired_image_transforms.RandomPairedHFlip(prob=1.0),
+        paired_image_transforms.RandomPairedHFlip(prob=0.5),
     ])
     tsfm = transforms.Compose([
         transforms.ToTensor(),
@@ -97,7 +97,7 @@ def main(args):
         dataset, batch_size=args.batch_size,
         shuffle=True, num_workers=args.num_workers)
 
-    for epoch in range(args.num_epochs):
+    for epoch in range(1, args.num_epochs+1):
 
         for i, (batch_x, batch_y) in enumerate(dataloader):
 
@@ -138,6 +138,9 @@ def parse(argv):
             '--ngpu', type=int, default=1,
             help='Number of GPUs to use')
     parser.add_argument(
+            '--nf', type=int, required=True,
+            help='Number of filters for the networks')
+    parser.add_argument(
             '--gan_loss', type=str, required=True,
             choices=['vanilla', 'wgan'],
             help='The type of GAN loss to sue for training')
@@ -146,10 +149,10 @@ def parse(argv):
             choices=['l1', 'l2', 'ce'],
             help='The type of reconstruction loss')
     parser.add_argument(
-            '--lambda_gan', type=float, default=1.0,
-            help='Lambda for the weight of gan loss')
+            '--lambda_rec', type=float, default=100.0,
+            help='Lambda for the weight of reconstruction loss')
     parser.add_argument(
-            '--batch_size', type=int, default=64,
+            '--batch_size', type=int, default=16,
             help='Batch size of training')
     parser.add_argument(
             '--num_workers', type=int, default=1,
@@ -158,7 +161,7 @@ def parse(argv):
             '--learning_rate', type=float, default=1e-3,
             help='Learning rate')
     parser.add_argument(
-            '--num_epochs', type=int, default=20,
+            '--num_epochs', type=int, default=50,
             help='Number of epochs for training the model')
     parser.add_argument(
             '--log_interval', type=int, default=100,
