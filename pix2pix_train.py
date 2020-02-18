@@ -165,7 +165,7 @@ def parse(argv):
             '--num_workers', type=int, default=1,
             help='Number of workers for loading data')
     parser.add_argument(
-            '--learning_rate', type=float, default=1e-3,
+            '--learning_rate', type=float, default=2e-4,
             help='Learning rate')
     parser.add_argument(
             '--num_epochs', type=int, default=50,
