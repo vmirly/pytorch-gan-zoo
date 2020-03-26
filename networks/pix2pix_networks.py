@@ -4,16 +4,19 @@ import torch.nn as nn
 
 def weights_init(module):
 
-    classname = module.__class__.__name__
+    # classname = module.__class__.__name__
 
-    if classname.find('Conv') != -1:
-        nn.init.normal_(module.weight.data, 0.0, 0.02)
-        if module.bias is not None:
-            nn.init.constant_(module.bias.data, 0)
-
-    elif classname.find('BatchNorm') != -1:
-        nn.init.normal_(module.weight.data, 1.0, 0.02)
-        nn.init.constant_(module.bias.data, 0)
+    if type(module) == nn.Linear:
+        nn.init.uniform_(tensor=module.weight, a=0.0, b=1.0)
+    elif type(module) == nn.Conv2d or type(module) == nn.ConvTranspose2d:
+        nn.init.normal_(tensor=module.weight, mean=0.0, std=0.02)
+    # if classname.find('Conv') != -1:
+    #    nn.init.xavier_normal_(module.weight.data, gain=1.0)
+    #    if module.bias is not None:
+    #        nn.init.constant_(module.bias.data, 0)
+    # elif classname.find('BatchNorm') != -1:
+    #    nn.init.normal_(module.weight.data, 1.0, 0.02)
+    #    nn.init.constant_(module.bias.data, 0)
 
 
 class ConvBlock(nn.Module):
@@ -116,23 +119,33 @@ class Pix2PixGenerator(nn.Module):
             kernel_size=3, name='c4', bias=False, stride=2, padding=1,
             activation='relu', bn=True, dropout=False, transposed=False)
 
+        self.conv5 = ConvBlock(
+            in_channels=n_filters*16, out_channels=n_filters*32,
+            kernel_size=3, name='c5', bias=False, stride=2, padding=1,
+            activation='relu', bn=True, dropout=False, transposed=False)
+
         # Expansive layers:
         self.t_conv1 = ConvBlock(
-            in_channels=n_filters*16, out_channels=n_filters*8,
+            in_channels=n_filters*32, out_channels=n_filters*16,
             kernel_size=4, name='e1', bias=False, stride=2, padding=1,
             activation='relu', bn=True, dropout=False, transposed=True)
 
         self.t_conv2 = ConvBlock(
-            in_channels=n_filters*16, out_channels=n_filters*4,
+            in_channels=n_filters*32, out_channels=n_filters*8,
             kernel_size=4, name='e2', bias=False, stride=2, padding=1,
             activation='relu', bn=True, dropout=False, transposed=True)
 
         self.t_conv3 = ConvBlock(
-            in_channels=n_filters*8, out_channels=n_filters*2,
+            in_channels=n_filters*16, out_channels=n_filters*4,
             kernel_size=4, name='e3', bias=False, stride=2, padding=1,
             activation='relu', bn=True, dropout=False, transposed=True)
 
         self.t_conv4 = ConvBlock(
+            in_channels=n_filters*8, out_channels=n_filters*2,
+            kernel_size=4, name='e4', bias=False, stride=2, padding=1,
+            activation='relu', bn=True, dropout=False, transposed=True)
+
+        self.t_conv5 = ConvBlock(
             in_channels=n_filters*4, out_channels=n_filters,
             kernel_size=4, name='e4', bias=False, stride=2, padding=1,
             activation='relu', bn=True, dropout=False, transposed=True)
@@ -150,17 +163,20 @@ class Pix2PixGenerator(nn.Module):
         x2 = self.conv2(x1)     # -> /4
         x3 = self.conv3(x2)     # -> /8
         x4 = self.conv4(x3)     # -> /16
+        x5 = self.conv5(x4)
 
         # Expansive layers:
-        x5 = self.t_conv1(x4)   # -> /8
-        x5c = torch.cat([x5, x3], axis=1)
-        x6 = self.t_conv2(x5c)  # -> /4
-        x6c = torch.cat([x6, x2], axis=1)
-        x7 = self.t_conv3(x6c)  # -> /2
-        x7c = torch.cat([x7, x1], axis=1)
-        x8 = self.t_conv4(x7c)
+        x6 = self.t_conv1(x5)   # -> /16
+        x6c = torch.cat([x6, x4], axis=1)
+        x7 = self.t_conv2(x6c)  # -> /4
+        x7c = torch.cat([x7, x3], axis=1)
+        x8 = self.t_conv3(x7c)  # -> /2
+        x8c = torch.cat([x8, x2], axis=1)
+        x9 = self.t_conv4(x8c)
+        x9c = torch.cat([x9, x1], axis=1)
+        x10 = self.t_conv5(x9c)
 
-        out = self.conv_last(x8)
+        out = self.conv_last(x10)
 
         return torch.tanh(out)
 
@@ -202,3 +218,43 @@ class Pix2PixDiscriminator(nn.Module):
         x = torch.sigmoid(x)
 
         return x
+
+
+##
+class DownsampleBlock(nn.Module):
+    def __init__(
+            self,
+            in_channels,
+            n_filters,
+            kernel_size,
+            padding,
+            apply_bn=True,
+            block_name=''):
+        super(DownsampleBlock, self).__init__()
+        self.main = nn.Sequential()
+        self.main.add_module(
+            name='conv_' + block_name,
+            module=nn.Conv2d(
+                in_channels=in_channels,
+                out_channels=n_filters,
+                kernel_size=kernel_size,
+                stride=2, padding=padding))
+        if apply_bn:
+            self.main.add_module(
+                name='bn_' + block_name,
+                module=nn.BatchNorm2d(
+                    num_features=n_filters,
+                    eps=1e-05,
+                    momentum=0.1,
+                    affine=True,
+                    track_running_stats=True))
+        self.main.add_module(
+            name='lrelu_' + block_name,
+            module=nn.LeakyReLU())
+
+        self.main.apply(weights_init)
+
+    def forward(self, x):
+        return self.main(x)
+
+
