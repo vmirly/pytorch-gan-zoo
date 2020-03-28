@@ -3,8 +3,11 @@ import pathlib
 import time
 import sys
 import argparse
+
 import torch
 import torch.optim as optim
+import torchvision
+from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
 from torch.utils.data import DataLoader
 
@@ -97,6 +100,8 @@ def main(args):
         dataset, batch_size=args.batch_size,
         shuffle=True, num_workers=args.num_workers)
 
+    writer = SummaryWriter(log_dir=os.path.join(args.checkpoint_dir, 'log/'))
+
     for epoch in range(1, args.num_epochs+1):
 
         for i, (batch_x, batch_y) in enumerate(dataloader):
@@ -113,10 +118,18 @@ def main(args):
             losses_d = training_step_D(batch_x_dev, batch_y_dev)
 
             if i % args.log_interval == 0:
-                print('Epoch {}/{} Iter {}/{} Rec: {:.3f} G: {:.3f} D: {}'
+                print('Epoch {}/{} Iter {}/{} Rec: {:.4f} G: {:.4f} D: {:.4f}'
                       ''.format(epoch, args.num_epochs, i, len(dataloader),
                                 losses_g['rec'], losses_g['errG'],
                                 losses_d['errD']))
+
+            writer.add_scalar(
+                'loss/errG', losses_g['errG'], global_step=epoch)
+            writer.add_scalar(
+                'loss/rec-{}'.format(args.rec_loss), losses_g['rec'],
+                global_step=epoch)
+            writer.add_scalar(
+                'loss/errD', losses_d['errD'], global_step=epoch)
 
         if epoch % 10 == 0:
             torch.save(
@@ -180,7 +193,7 @@ def parse(argv):
             '--checkpoint_dir', type=str, default='/tmp/checkpoints/',
             help='Checkpoint directory for training')
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     args.y2x = bool(args.y2x)
 
