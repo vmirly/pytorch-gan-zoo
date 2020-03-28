@@ -1,7 +1,7 @@
 # GAN-zoo
 
 
-## References
+## References - part 1
 
  * GAN [arxiv](https://arxiv.org/abs/1406.2661)
  * Wasserstein GAN [arxiv](https://arxiv.org/abs/1701.07875)
@@ -19,7 +19,7 @@
  * ConSinGAN [arxiv](https://arxiv.org/abs/2003.11512) [code](https://github.com/tohinz/ConSinGAN)
  * OT-GAN [arxiv](https://arxiv.org/abs/1803.05573)
 
-## References
+## References - part 2
  
  * Improved Techniques for Training GANs [arxiv](https://arxiv.org/abs/1606.03498)
  * On Convergence and Stability of GANs [arxiv](https://arxiv.org/abs/1705.07215)
