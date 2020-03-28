@@ -73,6 +73,7 @@ class ConvBlock(nn.Module):
             self.main.add_module(
                 'relu-{}'.format(name),
                 nn.ReLU(inplace=True))
+
         elif activation == 'leaky_relu':
             self.main.add_module(
                 'lrelu-{}'.format(name),
@@ -220,7 +221,6 @@ class Pix2PixDiscriminator(nn.Module):
         return x
 
 
-##
 class DownsampleBlock(nn.Module):
     def __init__(
             self,
@@ -230,7 +230,9 @@ class DownsampleBlock(nn.Module):
             padding,
             apply_bn=True,
             block_name=''):
+
         super(DownsampleBlock, self).__init__()
+
         self.main = nn.Sequential()
         self.main.add_module(
             name='conv_' + block_name,
@@ -256,5 +258,3 @@ class DownsampleBlock(nn.Module):
 
     def forward(self, x):
         return self.main(x)
-
-
