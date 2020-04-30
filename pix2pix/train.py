@@ -81,8 +81,8 @@ def main(args):
                 'errD': err_D.cpu().item()}
 
     paired_tsfm = transforms.Compose([
-        paired_image_transforms.RandomPairedHFlip(prob=0.5),
-    ])
+        paired_image_transforms.RandomPairedHFlip(prob=0.5)])
+
     tsfm = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(
@@ -99,6 +99,31 @@ def main(args):
     dataloader = DataLoader(
         dataset, batch_size=args.batch_size,
         shuffle=True, num_workers=args.num_workers)
+
+    val_dataset = PairedImg2ImgDataset(
+        image_dir=args.train_path,
+        paired_transform=paired_tsfm,
+        transform=tsfm,
+        mode='val')
+
+    val_dataloader = DataLoader(
+        val_dataset, batch_size=16,
+        shuffle=False, num_workers=args.num_workers)
+
+    static_val_batch_x, static_val_batch_y, _ = next(iter(val_dataloader))
+
+    if args.y2x:
+        grid_static_input = torchvision.utils.make_grid(
+            static_val_batch_y * 0.5 + 0.5, nrow=4)
+
+        grid_static_target = torchvision.utils.make_grid(
+            static_val_batch_x * 0.5 + 0.5, nrow=4)
+    else:
+        grid_static_input = torchvision.utils.make_grid(
+            static_val_batch_x * 0.5 + 0.5, nrow=4)
+
+        grid_static_target = torchvision.utils.make_grid(
+            static_val_batch_y * 0.5 + 0.5, nrow=4)
 
     writer = SummaryWriter(log_dir=os.path.join(args.checkpoint_dir, 'log/'))
 
@@ -142,6 +167,30 @@ def main(args):
                     'model-{}.tch'.format(epoch)
                 )
             )
+
+        # print(batch_y.shape, gen_images.shape)
+        # grid_generated = torchvision.utils.make_grid(
+        #    gen_images * 0.5 + 0.5, nrow=4)
+        # grid_target = torchvision.utils.make_grid(batch_y*0.5+0.5, nrow=4)
+        # writer.add_image('images/trainset-target', grid_target, epoch)
+        # writer.add_image('images/trainset-generated', grid_generated, epoch)
+
+        # validation-set:
+        generator.eval()
+        if args.y2x:
+            val_outputs = generator(static_val_batch_y.to(device))
+        else:
+            val_outputs = generator(static_val_batch_x.to(device))
+
+        val_outputs = val_outputs.detach().cpu()
+
+        grid_generated = torchvision.utils.make_grid(
+            val_outputs * 0.5 + 0.5, nrow=4)
+
+        writer.add_image('images/val-set-input', grid_static_input, epoch)
+        writer.add_image('images/val-set-target', grid_static_target, epoch)
+        writer.add_image('images/val-set-generated', grid_generated, epoch)
+        generator.train()
 
     return losses_g, losses_d
 
