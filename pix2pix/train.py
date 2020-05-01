@@ -30,10 +30,10 @@ def main(args):
     generator = p2p_net.Pix2PixGenerator(n_filters=args.nf).to(device)
     discriminator = p2p_net.Pix2PixDiscriminator(n_filters=args.nf).to(device)
 
-    optimizer_D = optim.Adam(
+    optimizer_G = optim.Adam(
         generator.parameters(), lr=args.learning_rate,
         betas=(args.beta1, 0.9))
-    optimizer_G = optim.Adam(
+    optimizer_D = optim.Adam(
         discriminator.parameters(), lr=args.learning_rate,
         betas=(args.beta1, 0.9))
 
@@ -143,7 +143,7 @@ def main(args):
             losses_d = training_step_D(batch_x_dev, batch_y_dev)
 
             if i % args.log_interval == 0:
-                print('Epoch {}/{} Iter {}/{} Rec: {:.4f} G: {:.4f} D: {:.4f}'
+                print('Epoch {:<3d}/{} Iter {:>3d}/{} Rec: {:.4f} G: {:.4f} D: {:.4f}'
                       ''.format(epoch, args.num_epochs, i, len(dataloader),
                                 losses_g['rec'], losses_g['errG'],
                                 losses_d['errD']))
@@ -168,12 +168,15 @@ def main(args):
                 )
             )
 
-        # print(batch_y.shape, gen_images.shape)
-        # grid_generated = torchvision.utils.make_grid(
-        #    gen_images * 0.5 + 0.5, nrow=4)
-        # grid_target = torchvision.utils.make_grid(batch_y*0.5+0.5, nrow=4)
-        # writer.add_image('images/trainset-target', grid_target, epoch)
-        # writer.add_image('images/trainset-generated', grid_generated, epoch)
+        gen_images = generator(batch_x_dev)
+        grid_generated = torchvision.utils.make_grid(
+            gen_images * 0.5 + 0.5, nrow=4)
+        if not args.y2x:
+            grid_target = torchvision.utils.make_grid(batch_y*0.5+0.5, nrow=4)
+        else:
+            grid_target = torchvision.utils.make_grid(batch_x*0.5+0.5, nrow=4)
+        writer.add_image('images/trainset-target', grid_target, epoch)
+        writer.add_image('images/trainset-generated', grid_generated, epoch)
 
         # validation-set:
         generator.eval()
