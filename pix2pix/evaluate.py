@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 
 from networks import pix2pix_networks as p2p_net
 from ops.data_ops import convert_tensor2image
-from ops.dataloader_paired import PairedImg2ImgDataset
+from data.dataloader_paired import PairedImg2ImgDataset
 
 
 def main(args):
