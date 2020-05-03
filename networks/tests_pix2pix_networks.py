@@ -10,7 +10,7 @@ class TestPix2PixNetworks(unittest.TestCase):
 
     @staticmethod
     def load_image():
-        img = Image.open('./data/1.jpg')
+        img = Image.open('./misc/example.jpg')
         tsfm = transforms.ToTensor()
         example = tsfm(img)
         example_a = example[:, :, :256]

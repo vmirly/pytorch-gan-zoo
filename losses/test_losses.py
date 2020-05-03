@@ -9,7 +9,7 @@ from losses import img_losses
 class TestLossFunctions(unittest.TestCase):
 
     def test_l1_loss(self):
-        img = Image.open('data/1.jpg')
+        img = Image.open('misc/example.jpg')
 
         img_width, img_height = img.size
         print('Width: {}  Height: {}'.format(

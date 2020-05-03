@@ -9,7 +9,7 @@ from ops import data_ops
 class TestImageConversion(unittest.TestCase):
 
     def test_tensor2image(self):
-        img = Image.open('data/1.jpg')
+        img = Image.open('misc/example.jpg')
         print('Original size:', img.size)
 
         tsfm = transforms.ToTensor()
@@ -29,7 +29,7 @@ class TestImageConversion(unittest.TestCase):
 
     def test_tensor2image_with_normalize(self):
 
-        img = Image.open('data/1.jpg')
+        img = Image.open('misc/example.jpg')
 
         tsfm = transforms.Compose([
             transforms.ToTensor(),
