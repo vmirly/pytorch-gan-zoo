@@ -24,16 +24,26 @@ def main(args):
 
     lossfn_G, lossfn_D_real, lossfn_D_fake = constants.GAN_LOSS[args.gan_loss]
 
-    generator = nets.make_generator(
-        num_z_units=args.z_dim,
-        num_hidden_units=args.hidden_dim,
-        output_image_size=args.image_dim * args.image_dim,
-        p_drop=args.p_drop).to(device)
+    if args.fully_connected:
+        generator = nets.make_generator(
+            num_z_units=args.z_dim,
+            num_hidden_units=args.hidden_dim,
+            output_image_dim=args.image_dim,
+            p_drop=args.p_drop).to(device)
 
-    discriminator = nets.make_discriminator(
-        input_image_size=args.image_dim * args.image_dim,
-        num_hidden_units=args.hidden_dim,
-        p_drop=args.p_drop).to(device)
+        discriminator = nets.make_discriminator(
+            input_image_dim=args.image_dim,
+            num_hidden_units=args.hidden_dim,
+            p_drop=args.p_drop).to(device)
+    else:
+        generator = nets.make_conv_generator(
+            num_z_units=args.z_dim,
+            num_filters=args.nf_generator,
+            output_image_dim=args.image_dim).to(device)
+
+        discriminator = nets.make_conv_discriminator(
+            image_dim=args.image_dim,
+            num_filters=args.nf_discriminator).to(device)
 
     optimizer_G = optim.Adam(
         generator.parameters(),
@@ -63,13 +73,13 @@ def main(args):
         discriminator.train()
         discriminator.zero_grad()
 
-        d_real = discriminator(batch_real_images.view(batch_real_images.shape[0], -1))
+        d_real = discriminator(batch_real_images)
         err_D_real = lossfn_D_real(d_real)
 
         d_fake = discriminator(batch_gen_images)
         err_D_fake = lossfn_D_fake(d_fake)
 
-        loss_total = err_D_real + err_D_fake
+        loss_total = 0.5 * (err_D_real + err_D_fake)
 
         loss_total.backward()
         optimizer_D.step()
@@ -134,14 +144,13 @@ def main(args):
                 )
             )
 
-        generator.eval()
-        outputs_flat = generator(static_batch_z).detach().cpu()
-        outputs = outputs_flat.reshape(16, 1, args.image_dim, args.image_dim)
-        outputs = 1.0 - (outputs * 0.5 + 0.5)
+            generator.eval()
+            outputs = generator(static_batch_z).detach().cpu()
+            outputs = 1.0 - (outputs * 0.5 + 0.5)
 
-        grid_generated = torchvision.utils.make_grid(outputs, nrow=4)
+            grid_generated = torchvision.utils.make_grid(outputs, nrow=4)
 
-        writer.add_image('images/generated', grid_generated, epoch + 1)
+            writer.add_image('images/generated', grid_generated, epoch + 1)
 
 
 def parse(argv):
@@ -162,6 +171,16 @@ def parse(argv):
             '--p_drop', type=float, required=False, default=0.5,
             help='The probability of drop for the Dropout layers')
 
+    parser.add_argument(
+            '--fully_connected', type=int, required=False, default=1,
+            help='Flag to determine fully-connected networks or not')
+    parser.add_argument(
+            '--nf_generator', type=int, required=False, default=64,
+            help='Number of filters for the generator')
+    parser.add_argument(
+            '--nf_discriminator', type=int, required=False, default=8,
+            help='Number of filters for the discriminator')
+
     # The rest of arguments
     parser.add_argument(
             '--ngpu', type=int, default=1,
@@ -177,7 +196,7 @@ def parse(argv):
             '--num_workers', type=int, default=1,
             help='Number of workers for loading data')
     parser.add_argument(
-            '--learning_rate', type=float, default=1e-3,
+            '--learning_rate', type=float, default=1e-4,
             help='Learning rate')
     parser.add_argument(
             '--num_epochs', type=int, default=100,
