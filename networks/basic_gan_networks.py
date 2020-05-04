@@ -109,7 +109,7 @@ def make_conv_discriminator(
         num_filters):
 
     nf1 = num_filters
-    nf2 = num_filters * 2
+    nf2 = num_filters * 4
 
     feature_dim = image_dim // 4
 
