@@ -43,18 +43,23 @@ def make_discriminator(
 
 def make_conv_generator(
         num_z_units,
-        num_filters):
+        num_filters,
+        output_image_dim):
 
     nf1 = num_filters
     nf2 = num_filters // 2
     nf3 = num_filters // 4
     nf4 = num_filters // 8
 
+    feature_dim = output_image_dim // 4
+
+    n_hidden_units = nf1 * feature_dim * feature_dim
+
     model = nn.Sequential(
-        nn.Linear(num_z_units, 3136, bias=False),
-        nn.BatchNorm1d(num_features=3136),
+        nn.Linear(num_z_units, n_hidden_units, bias=False),
+        nn.BatchNorm1d(num_features=n_hidden_units),
         nn.LeakyReLU(inplace=True, negative_slope=0.0001),
-        torch_ops.Reshape(new_shape=(64, 7, 7)),
+        torch_ops.Reshape(new_shape=(nf1, feature_dim, feature_dim)),
             
         nn.ConvTranspose2d(
             in_channels=nf1,
@@ -99,34 +104,41 @@ def make_conv_generator(
     return model
 
 
-def make_conv_discriminator():
+def make_conv_discriminator(
+        image_dim,
+        num_filters):
+
+    nf1 = num_filters
+    nf2 = num_filters * 2
+
+    feature_dim = image_dim // 4
 
     model = nn.Sequential(
         nn.Conv2d(
             in_channels=1,
-            out_channels=8,
+            out_channels=nf1,
             padding=1,
             kernel_size=(3, 3),
             stride=(2, 2),
             bias=False),
 
-        nn.BatchNorm2d(num_features=8),
+        nn.BatchNorm2d(num_features=nf1),
         nn.LeakyReLU(inplace=True, negative_slope=0.0001), 
             
         nn.Conv2d(
-            in_channels=8,
-            out_channels=32,
+            in_channels=nf1,
+            out_channels=nf2,
             padding=1,
             kernel_size=(3, 3),
             stride=(2, 2),
             bias=False),
 
-        nn.BatchNorm2d(num_features=32),
+        nn.BatchNorm2d(num_features=nf2),
         nn.LeakyReLU(inplace=True, negative_slope=0.0001), 
             
         torch_ops.Flatten(),
 
-        nn.Linear(7*7*32, 1),
+        nn.Linear(nf2 * feature_dim * feature_dim, 1),
         nn.Sigmoid())
 
     return model

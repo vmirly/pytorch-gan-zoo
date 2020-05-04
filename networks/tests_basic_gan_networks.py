@@ -20,8 +20,8 @@ class TestBasicGANNetworks(unittest.TestCase):
         self.assertTrue(np.array_equal(disc_output.shape, (1, 1)))
 
     def test_conv_networks(self):
-        gen = nets.make_conv_generator(10, 64)
-        disc = nets.make_conv_discriminator()
+        gen = nets.make_conv_generator(10, 64, 28)
+        disc = nets.make_conv_discriminator(28, 16)
 
         z = np.random.normal(size=(4, 10)).astype(np.float32)
         z = torch.tensor(z)
