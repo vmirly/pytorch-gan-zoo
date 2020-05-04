@@ -38,12 +38,12 @@ def main(args):
     else:
         generator = nets.make_conv_generator(
             num_z_units=args.z_dim,
-            num_filters=64,
-            output_image_dim=28).to(device)
+            num_filters=args.nf_generator,
+            output_image_dim=args.image_dim).to(device)
 
         discriminator = nets.make_conv_discriminator(
-            image_dim=28,
-            num_filters=16).to(device)
+            image_dim=args.image_dim,
+            num_filters=args.nf_discriminator).to(device)
 
     optimizer_G = optim.Adam(
         generator.parameters(),
@@ -144,13 +144,13 @@ def main(args):
                 )
             )
 
-        generator.eval()
-        outputs = generator(static_batch_z).detach().cpu()
-        outputs = 1.0 - (outputs * 0.5 + 0.5)
+            generator.eval()
+            outputs = generator(static_batch_z).detach().cpu()
+            outputs = 1.0 - (outputs * 0.5 + 0.5)
 
-        grid_generated = torchvision.utils.make_grid(outputs, nrow=4)
+            grid_generated = torchvision.utils.make_grid(outputs, nrow=4)
 
-        writer.add_image('images/generated', grid_generated, epoch + 1)
+            writer.add_image('images/generated', grid_generated, epoch + 1)
 
 
 def parse(argv):
@@ -173,7 +173,13 @@ def parse(argv):
 
     parser.add_argument(
             '--fully_connected', type=int, required=False, default=1,
-            help='Flat to determine fully-connected networks or not')
+            help='Flag to determine fully-connected networks or not')
+    parser.add_argument(
+            '--nf_generator', type=int, required=False, default=64,
+            help='Number of filters for the generator')
+    parser.add_argument(
+            '--nf_discriminator', type=int, required=False, default=8,
+            help='Number of filters for the discriminator')
 
     # The rest of arguments
     parser.add_argument(
