@@ -45,7 +45,6 @@ def main(args):
             num_cond_vals=args.c_dim,
             image_dim=args.image_dim,
             image_channels=args.image_channels,
-            p_drop=args.p_drop,
             g_num_filters=args.nf_generator,
             d_num_filters=args.nf_discriminator).to(device)
 
@@ -119,7 +118,7 @@ def main(args):
 
     for epoch in range(1, args.num_epochs+1):
 
-        for i, (batch_real, batch_labels) in enumerate(dataloader):
+        for i, (batch_real, batch_labels) in enumerate(dataloader, 1):
 
             batch_z = torch.zeros(batch_real.shape[0], args.z_dim).uniform_(-1.0, 1.0)
             batch_z_dev = batch_z.to(device)
@@ -167,7 +166,7 @@ def main(args):
 
             grid_generated = torchvision.utils.make_grid(outputs, nrow=5)
 
-            writer.add_image('images/generated', grid_generated, epoch + 1)
+            writer.add_image('images/generated', grid_generated, epoch)
 
 
 def parse(argv):
