@@ -14,7 +14,7 @@ from torchvision import transforms
 from ops import constants
 from ops import torch_ops
 from networks import cond_gan_networks as nets
-from data import mnist_loader
+from utils import mnist_loader
 
 
 def main(args):

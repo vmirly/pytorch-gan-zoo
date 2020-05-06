@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from ops import constants
 from networks import pix2pix_networks as p2p_net
-from data.dataloader_paired import PairedImg2ImgDataset
+from utils.dataloader_paired import PairedImg2ImgDataset
 from ops import paired_image_transforms
 
 

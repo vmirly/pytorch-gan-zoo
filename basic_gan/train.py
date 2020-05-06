@@ -12,7 +12,7 @@ from torchvision import transforms
 
 from ops import constants
 from networks import basic_gan_networks as nets
-from data import mnist_loader
+from utils import mnist_loader
 
 
 def main(args):
