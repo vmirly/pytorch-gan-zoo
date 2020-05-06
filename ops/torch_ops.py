@@ -1,4 +1,16 @@
+import torch
 import torch.nn as nn
+
+
+def onehot_embedding(num_classes, device=None):
+    y = torch.eye(num_classes)
+    if device is not None:
+        y = y.to(device)
+
+    def encode_to_onehot(labels):
+        return y[labels]
+
+    return encode_to_onehot
 
 
 class Flatten(nn.Module):
