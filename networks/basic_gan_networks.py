@@ -7,9 +7,11 @@ def make_generator(
         num_z_units,
         num_hidden_units,
         output_image_dim,
+        output_image_channels,
         p_drop=0.5):
 
-    output_image_size = output_image_dim * output_image_dim
+    output_image_size = (
+        output_image_channels * output_image_dim * output_image_dim)
 
     model = nn.Sequential(
         nn.Linear(num_z_units, num_hidden_units),
@@ -17,26 +19,26 @@ def make_generator(
         nn.Dropout(p=p_drop),
         nn.Linear(num_hidden_units, output_image_size),
         nn.Tanh(),
-        torch_ops.Reshape((1, output_image_dim, output_image_dim)))
+        torch_ops.Reshape(
+            (output_image_channels,
+             output_image_dim,
+             output_image_dim)))
 
     return model
 
 
 def make_discriminator(
-        input_image_dim,
+        input_feature_dim,
         num_hidden_units,
         p_drop=0.5):
 
-    input_image_size = input_image_dim * input_image_dim
-
     model = nn.Sequential(
         torch_ops.Flatten(),
-        nn.Linear(input_image_size, num_hidden_units),
+        nn.Linear(input_feature_dim, num_hidden_units),
         nn.LeakyReLU(inplace=True),
         nn.Dropout(p=p_drop),
         nn.Linear(num_hidden_units, 1),
         nn.Sigmoid())
-        #torch_ops.Flatten())
 
     return model
 
@@ -44,7 +46,8 @@ def make_discriminator(
 def make_conv_generator(
         num_z_units,
         num_filters,
-        output_image_dim):
+        output_image_dim,
+        output_image_channels):
 
     nf1 = num_filters
     nf2 = num_filters // 2
@@ -60,7 +63,7 @@ def make_conv_generator(
         nn.BatchNorm1d(num_features=n_hidden_units),
         nn.LeakyReLU(inplace=True, negative_slope=0.0001),
         torch_ops.Reshape(new_shape=(nf1, feature_dim, feature_dim)),
-            
+
         nn.ConvTranspose2d(
             in_channels=nf1,
             out_channels=nf2,
@@ -93,7 +96,7 @@ def make_conv_generator(
             
         nn.ConvTranspose2d(
             in_channels=nf4,
-            out_channels=1,
+            out_channels=output_image_channels,
             kernel_size=(2, 2),
             stride=(1, 1),
             padding=0,
@@ -106,6 +109,7 @@ def make_conv_generator(
 
 def make_conv_discriminator(
         image_dim,
+        num_inp_channels,
         num_filters):
 
     nf1 = num_filters
@@ -115,7 +119,7 @@ def make_conv_discriminator(
 
     model = nn.Sequential(
         nn.Conv2d(
-            in_channels=1,
+            in_channels=num_inp_channels,
             out_channels=nf1,
             padding=1,
             kernel_size=(3, 3),

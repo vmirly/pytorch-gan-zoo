@@ -29,20 +29,23 @@ def main(args):
             num_z_units=args.z_dim,
             num_hidden_units=args.hidden_dim,
             output_image_dim=args.image_dim,
+            output_image_channels=args.image_channels,
             p_drop=args.p_drop).to(device)
 
         discriminator = nets.make_discriminator(
-            input_image_dim=args.image_dim,
+            input_feature_dim=args.image_dim * args.image_dim,
             num_hidden_units=args.hidden_dim,
             p_drop=args.p_drop).to(device)
     else:
         generator = nets.make_conv_generator(
             num_z_units=args.z_dim,
             num_filters=args.nf_generator,
-            output_image_dim=args.image_dim).to(device)
+            output_image_dim=args.image_dim,
+            output_image_channels=args.image_channels).to(device)
 
         discriminator = nets.make_conv_discriminator(
             image_dim=args.image_dim,
+            num_inp_channels=args.image_channels,
             num_filters=args.nf_discriminator).to(device)
 
     optimizer_G = optim.Adam(
@@ -167,6 +170,9 @@ def parse(argv):
     parser.add_argument(
             '--image_dim', type=int, required=False, default=28,
             help='The size (w or h) of the squared gray-scaled image')
+    parser.add_argument(
+            '--image_channels', type=int, required=False, default=1,
+            help='Number of image channels')
     parser.add_argument(
             '--p_drop', type=float, required=False, default=0.5,
             help='The probability of drop for the Dropout layers')
