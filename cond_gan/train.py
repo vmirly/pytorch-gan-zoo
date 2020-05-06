@@ -3,6 +3,7 @@ import pathlib
 import time
 import sys
 import argparse
+import numpy as np
 
 import torch
 import torch.optim as optim
@@ -11,7 +12,8 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
 
 from ops import constants
-from networks import basic_gan_networks as nets
+from ops import torch_ops
+from networks import cond_gan_networks as nets
 from data import mnist_loader
 
 
@@ -24,47 +26,45 @@ def main(args):
 
     lossfn_G, lossfn_D_real, lossfn_D_fake = constants.GAN_LOSS[args.gan_loss]
 
+    onehot_encoder = torch_ops.onehot_embedding(
+        num_classes=args.c_dim,
+        device=device)
+
     if args.fully_connected:
-        generator = nets.make_generator(
+        cgan = nets.ConditionalFullyConnectedGAN(
             num_z_units=args.z_dim,
+            num_cond_vals=args.c_dim,
             num_hidden_units=args.hidden_dim,
-            output_image_dim=args.image_dim,
-            output_image_channels=args.image_channels,
-            p_drop=args.p_drop).to(device)
-
-        discriminator = nets.make_discriminator(
-            input_feature_dim=args.image_dim * args.image_dim,
-            num_hidden_units=args.hidden_dim,
-            p_drop=args.p_drop).to(device)
-    else:
-        generator = nets.make_conv_generator(
-            num_z_units=args.z_dim,
-            num_filters=args.nf_generator,
-            output_image_dim=args.image_dim,
-            output_image_channels=args.image_channels).to(device)
-
-        discriminator = nets.make_conv_discriminator(
             image_dim=args.image_dim,
-            num_inp_channels=args.image_channels,
-            num_filters=args.nf_discriminator).to(device)
+            image_channels=args.image_channels,
+            p_drop=args.p_drop).to(device)
+
+    else:
+        cgan = nets.ConditionalConvGAN(
+            num_z_units=args.z_dim,
+            num_cond_vals=args.c_dim,
+            image_dim=args.image_dim,
+            image_channels=args.image_channels,
+            g_num_filters=args.nf_generator,
+            d_num_filters=args.nf_discriminator).to(device)
 
     optimizer_G = optim.Adam(
-        generator.parameters(),
+        cgan.generator.parameters(),
         lr=args.learning_rate,
         betas=(args.beta1, 0.9))
 
     optimizer_D = optim.Adam(
-        discriminator.parameters(),
+        cgan.discriminator.parameters(),
         lr=args.learning_rate,
         betas=(args.beta1, 0.9))
 
-    def training_step_G(batch_z):
-        generator.train()
-        generator.zero_grad()
+    def training_step_G(batch_z, batch_c):
+        cgan.generator.train()
+        cgan.generator.zero_grad()
 
-        gen_images = generator(batch_z)
+        gen_images = cgan.gen_forward(batch_z, batch_c)
 
-        d_fake = discriminator(gen_images)
+        d_fake = cgan.disc_forward(gen_images, batch_c)
         err_G = lossfn_G(d_fake)
 
         err_G.backward()
@@ -72,14 +72,15 @@ def main(args):
 
         return {'errG': err_G.cpu().item()}, gen_images.detach()
 
-    def training_step_D(batch_gen_images, batch_real_images):
-        discriminator.train()
-        discriminator.zero_grad()
+    def training_step_D(batch_gen_images, batch_gen_c,
+                        batch_real_images, batch_real_c):
+        cgan.discriminator.train()
+        cgan.discriminator.zero_grad()
 
-        d_real = discriminator(batch_real_images)
+        d_real = cgan.disc_forward(batch_real_images, batch_real_c)
         err_D_real = lossfn_D_real(d_real)
 
-        d_fake = discriminator(batch_gen_images)
+        d_fake = cgan.disc_forward(batch_gen_images, batch_gen_c)
         err_D_fake = lossfn_D_fake(d_fake)
 
         loss_total = 0.5 * (err_D_real + err_D_fake)
@@ -104,22 +105,34 @@ def main(args):
         mode='train')
     print('dataloader', dataloader)
 
-    static_batch_z = torch.zeros((16, args.z_dim)).uniform_(-1.0, 1.0).to(device)
+    static_batch_z = torch.zeros((50, args.z_dim)).uniform_(-1.0, 1.0)
+    static_batch_z = static_batch_z.to(device)
+    print('static_batch_z:', static_batch_z.shape)
+
+    static_batch_c = torch.LongTensor([i for i in range(args.c_dim)])
+    static_batch_c = static_batch_c.view(-1, 1).repeat((1, 5)).view(-1)
+    static_batch_c = onehot_encoder(static_batch_c.to(device))
+    print('static_batch_c:', static_batch_c.shape)
 
     writer = SummaryWriter(log_dir=os.path.join(args.checkpoint_dir, 'log/'))
 
     for epoch in range(1, args.num_epochs+1):
 
-        for i, (batch_real, _) in enumerate(dataloader):
+        for i, (batch_real, batch_labels) in enumerate(dataloader, 1):
 
             batch_z = torch.zeros(batch_real.shape[0], args.z_dim).uniform_(-1.0, 1.0)
             batch_z_dev = batch_z.to(device)
 
+            batch_c = np.random.choice(a=args.c_dim, size=len(batch_z))
+            batch_c_dev = onehot_encoder(torch.tensor(batch_c).to(device))
+
             batch_real_dev = batch_real.to(device)
+            batch_labels_dev = onehot_encoder(batch_labels.to(device))
 
-            losses_g, gen_images = training_step_G(batch_z_dev)
+            losses_g, gen_images = training_step_G(batch_z_dev, batch_c_dev)
 
-            losses_d = training_step_D(gen_images, batch_real_dev)
+            losses_d = training_step_D(gen_images, batch_c_dev,
+                                       batch_real_dev, batch_labels_dev)
 
             if i % args.log_interval == 0:
                 print('Epoch {:<3d}/{} Iter {:>3d}/{} G: {:.4f} D: {:.4f}'
@@ -139,7 +152,7 @@ def main(args):
             torch.save(
                 {
                     'epoch': epoch,
-                    'model_state_dict': generator.state_dict()
+                    'model_state_dict': cgan.generator.state_dict()
                 },
                 os.path.join(
                     args.checkpoint_dir,
@@ -147,13 +160,13 @@ def main(args):
                 )
             )
 
-            generator.eval()
-            outputs = generator(static_batch_z).detach().cpu()
+            cgan.generator.eval()
+            outputs = cgan.gen_forward(static_batch_z, static_batch_c).detach().cpu()
             outputs = 1.0 - (outputs * 0.5 + 0.5)
 
-            grid_generated = torchvision.utils.make_grid(outputs, nrow=4)
+            grid_generated = torchvision.utils.make_grid(outputs, nrow=5)
 
-            writer.add_image('images/generated', grid_generated, epoch + 1)
+            writer.add_image('images/generated', grid_generated, epoch)
 
 
 def parse(argv):
@@ -164,6 +177,9 @@ def parse(argv):
     parser.add_argument(
             '--z_dim', type=int, required=False, default=50,
             help='The size of the latent (z) dimnesion')
+    parser.add_argument(
+            '--c_dim', type=int, required=True,
+            help='The number of condition values (i.e., number of classes)')
     parser.add_argument(
             '--hidden_dim', type=int, required=False, default=128,
             help='The size of the hidden layer')
