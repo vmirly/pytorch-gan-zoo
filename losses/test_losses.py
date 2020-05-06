@@ -30,4 +30,4 @@ class TestLossFunctions(unittest.TestCase):
         self.assertAlmostEqual(
             img_losses.l1_lossfn(t_a, t_b).item(),
             np.mean(np.abs(t_a.numpy() - t_b.numpy())),
-            places=7)
+            places=4)
