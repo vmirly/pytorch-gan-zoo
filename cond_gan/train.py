@@ -46,7 +46,8 @@ def main(args):
             image_dim=args.image_dim,
             image_channels=args.image_channels,
             g_num_filters=args.nf_generator,
-            d_num_filters=args.nf_discriminator).to(device)
+            d_num_filters=args.nf_discriminator,
+            use_fusion_layer=args.use_fusion_layer).to(device)
 
     optimizer_G = optim.Adam(
         cgan.generator.parameters(),
@@ -197,6 +198,10 @@ def parse(argv):
             '--fully_connected', type=int, required=False, default=1,
             help='Flag to determine fully-connected networks or not')
     parser.add_argument(
+            '--use_fusion_layer', type=int, required=False, default=0,
+            help='Applying a non-trianble projector on conditional '
+                 'variables in convolutional discriminator')
+    parser.add_argument(
             '--nf_generator', type=int, required=False, default=64,
             help='Number of filters for the generator')
     parser.add_argument(
@@ -241,6 +246,9 @@ def parse(argv):
 
     ckpt_path = pathlib.Path(args.checkpoint_dir)
     ckpt_path.mkdir(parents=True)
+
+    args.fully_connected = bool(args.fully_connected)
+    args.use_fusion_layer = bool(args.use_fusion_layer)
 
     return args
 
