@@ -40,60 +40,6 @@ class ConditionalFullyConnectedGAN(nn.Module):
         return self.discriminator(inputs)
 
 
-class LateFusionDiscriminator(nn.Module):
-
-    def __init__(
-            self,
-            image_dim,
-            image_channels,
-            num_filters,
-            num_cond_vals):
-        super(LateFusionDiscriminator, self).__init__()
-
-        nf1 = num_filters
-        nf2 = num_filters * 4
-
-        feature_dim = image_dim // 4
-
-        self.feature_extractor = nn.Sequential(
-            nn.Conv2d(
-                in_channels=image_channels,
-                out_channels=nf1,
-                padding=1,
-                kernel_size=(3, 3),
-                stride=(2, 2),
-                bias=False),
-
-            nn.BatchNorm2d(num_features=nf1),
-            nn.LeakyReLU(inplace=True, negative_slope=0.0001),
-
-            nn.Conv2d(
-                in_channels=nf1,
-                out_channels=nf2,
-                padding=1,
-                kernel_size=(3, 3),
-                stride=(2, 2),
-                bias=False),
-
-            nn.BatchNorm2d(num_features=nf2),
-            nn.LeakyReLU(inplace=True, negative_slope=0.0001),
-
-            torch_ops.Flatten())
-
-        # Final FC layer after feature fusion
-        self.fc = nn.Sequential(
-            nn.Linear(nf2 * feature_dim * feature_dim + num_cond_vals, 1),
-
-            nn.Sigmoid())
-
-    def forward(self, x, y):
-        x = self.feature_extractor(x)
-
-        x = torch.cat([x, y], dim=1)
-
-        return self.fc(x)
-
-
 class ConditionalConvGAN(nn.Module):
 
     def __init__(
@@ -115,15 +61,17 @@ class ConditionalConvGAN(nn.Module):
             output_image_dim=image_dim,
             output_image_channels=image_channels)
 
-        # self.discriminator = basic_nets.make_conv_discriminator(
-        #    image_dim=image_dim,
-        #    num_inp_channels=image_channels + num_cond_vals,
-        #    num_filters=d_num_filters)
-        self.discriminator = LateFusionDiscriminator(
+        self.discriminator = basic_nets.make_conv_discriminator(
             image_dim=image_dim,
-            image_channels=image_channels,
-            num_filters=d_num_filters,
-            num_cond_vals=num_cond_vals)
+            num_inp_channels=image_channels + 1, #num_cond_vals,
+            num_filters=d_num_filters)
+
+        # A non-trainable layer for projecting conditional labels
+        self.c_projector = nn.Linear(
+            in_features=num_cond_vals,
+            out_features=image_dim * image_dim,
+            bias=False)
+        self.c_projector.weight.requires_grad = False
 
     def gen_forward(self, z, c):
         inputs = torch.cat([z, c], dim=1)
@@ -134,7 +82,8 @@ class ConditionalConvGAN(nn.Module):
         # c = c.view(-1, self.num_cond_vals, 1, 1)
         # c = c.repeat((1, 1, self.image_dim, self.image_dim))
 
-        # inputs = torch.cat([imgs, c], dim=1)
+        c_proj = self.c_projector(c).view(-1, 1, self.image_dim, self.image_dim)
 
-        # return self.discriminator(inputs)
-        return self.discriminator(imgs, c)
+        inputs = torch.cat([imgs, c_proj], dim=1)
+
+        return self.discriminator(inputs)
