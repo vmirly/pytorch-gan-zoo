@@ -29,7 +29,7 @@ class TestCondGANNetworks(unittest.TestCase):
         disc_output = cond_gan.disc_forward(gen_output, c)
         self.assertTrue(np.array_equal(disc_output.shape, (1, 1)))
 
-    def test_conv_networks(self):
+    def test_conv_networks_no_fusion(self):
 
         cond_gan = nets.ConditionalConvGAN(
             num_z_units=10,
@@ -37,7 +37,8 @@ class TestCondGANNetworks(unittest.TestCase):
             image_dim=28,
             image_channels=1,
             g_num_filters=64,
-            d_num_filters=8)
+            d_num_filters=8,
+            use_fusion_layer=False)
 
         z = np.random.normal(size=(4, 10)).astype(np.float32)
         z = torch.tensor(z)
