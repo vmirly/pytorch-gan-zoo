@@ -9,7 +9,7 @@ from losses import img_losses
 class TestLossFunctions(unittest.TestCase):
 
     def test_l1_loss(self):
-        img = Image.open('data/1.jpg')
+        img = Image.open('misc/example.jpg')
 
         img_width, img_height = img.size
         print('Width: {}  Height: {}'.format(
@@ -30,4 +30,4 @@ class TestLossFunctions(unittest.TestCase):
         self.assertAlmostEqual(
             img_losses.l1_lossfn(t_a, t_b).item(),
             np.mean(np.abs(t_a.numpy() - t_b.numpy())),
-            places=7)
+            places=4)
