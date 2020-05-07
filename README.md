@@ -6,7 +6,7 @@ A collection of GAN models implemented in PyTorch:
 
  * Basic GAN on MNIST [code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/master/basic_gan)
  * Conditional GAN on MNIST [code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/master/cond_gan)
- * Pix2Pix on FACADE dataset [code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/master/pix2pix)
+ * Pix2Pix on FACADES dataset [code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/master/pix2pix)
 
 
 ## References - part 1
