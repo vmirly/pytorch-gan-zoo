@@ -4,7 +4,7 @@
 
 ![](./notebooks/snapshots/cover-image.png | width=100)
 
-<img src="./notebooks/snapshots/cover-image.png" width="300"/>
+<img src="./notebooks/snapshots/cover-image.png" width="500"/>
 
 ## References - part 1
 
