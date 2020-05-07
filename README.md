@@ -1,10 +1,13 @@
 # GAN-zoo
 
-![](./notebooks/snapshots/cover-image.png)
-
-![](./notebooks/snapshots/cover-image.png | width=100)
-
 <img src="./notebooks/snapshots/cover-image.png" width="500"/>
+
+A collection of GAN models implemented in PyTorch:
+
+ * Basic GAN on MNIST ![code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/cover-readme/basic_gan)
+ * Conditional GAN on MNIST ![code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/cover-readme/cond_gan)
+ * Pix2Pix on FACADE dataset ![code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/cover-readme/pix2pix)
+
 
 ## References - part 1
 
