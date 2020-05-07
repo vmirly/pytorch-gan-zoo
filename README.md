@@ -2,6 +2,10 @@
 
 ![](./notebooks/snapshots/cover-image.png)
 
+![](./notebooks/snapshots/cover-image.png | width=100)
+
+<img src="./notebooks/snapshots/cover-image.png" width="300"/>
+
 ## References - part 1
 
  * GAN [arxiv](https://arxiv.org/abs/1406.2661)
