@@ -1,6 +1,6 @@
 # GAN-zoo
 
-![](./notebooks/snapshots/cover-image.png =100x20)
+![](./notebooks/snapshots/cover-image.png)
 
 ## References - part 1
 
