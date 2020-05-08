@@ -111,8 +111,10 @@ def main(args):
     print('static_batch_z:', static_batch_z.shape)
 
     static_batch_c = torch.LongTensor([i for i in range(args.c_dim)])
-    static_batch_c = static_batch_c.view(-1, 1).repeat((1, 5)).view(-1)
-    static_batch_c = onehot_encoder(static_batch_c.to(device))
+    static_batch_c = static_batch_c.view(-1, 1).repeat((1, 5))
+    static_batch_c = static_batch_c.permute((1, 0))
+    print('static_batch_c', static_batch_c)
+    static_batch_c = onehot_encoder(static_batch_c.reshape(-1).to(device))
     print('static_batch_c:', static_batch_c.shape)
 
     writer = SummaryWriter(log_dir=os.path.join(args.checkpoint_dir, 'log/'))
@@ -165,7 +167,7 @@ def main(args):
             outputs = cgan.gen_forward(static_batch_z, static_batch_c).detach().cpu()
             outputs = 1.0 - (outputs * 0.5 + 0.5)
 
-            grid_generated = torchvision.utils.make_grid(outputs, nrow=5)
+            grid_generated = torchvision.utils.make_grid(outputs, nrow=10)
 
             writer.add_image('images/generated', grid_generated, epoch)
 
