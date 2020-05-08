@@ -33,4 +33,5 @@ A collection of GAN models implemented in PyTorch:
  * On Convergence and Stability of GANs [arxiv](https://arxiv.org/abs/1705.07215)
  * Which Training Methods for GANs do actually Converge? [arxiv](https://arxiv.org/abs/1801.04406)
  * Is generator conditioning causally related to GAN performance? [arxiv](https://arxiv.org/abs/1802.08768)
- * The unusual effectiveness of averaging in gan training [arxiv](https://arxiv.org/abs/1806.04498) 
+ * The unusual effectiveness of averaging in gan training [arxiv](https://arxiv.org/abs/1806.04498)
+ * cGANs with projection discriminator [arxiv](https://arxiv.org/abs/1802.05637)
