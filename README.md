@@ -1,5 +1,13 @@
 # GAN-zoo
 
+<img src="./notebooks/snapshots/cover-image.png" width="500"/>
+
+A collection of GAN models implemented in PyTorch:
+
+ * Basic GAN on MNIST [code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/master/basic_gan)
+ * Conditional GAN on MNIST [code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/master/cond_gan)
+ * Pix2Pix on FACADES dataset [code](https://github.com/vmirly/PyTorch-GAN-zoo/tree/master/pix2pix)
+
 
 ## References - part 1
 
@@ -25,4 +33,5 @@
  * On Convergence and Stability of GANs [arxiv](https://arxiv.org/abs/1705.07215)
  * Which Training Methods for GANs do actually Converge? [arxiv](https://arxiv.org/abs/1801.04406)
  * Is generator conditioning causally related to GAN performance? [arxiv](https://arxiv.org/abs/1802.08768)
- * The unusual effectiveness of averaging in gan training [arxiv](https://arxiv.org/abs/1806.04498) 
+ * The unusual effectiveness of averaging in gan training [arxiv](https://arxiv.org/abs/1806.04498)
+ * cGANs with projection discriminator [arxiv](https://arxiv.org/abs/1802.05637)
