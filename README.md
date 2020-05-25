@@ -14,6 +14,7 @@ A collection of GAN models implemented in PyTorch:
  * GAN [arxiv](https://arxiv.org/abs/1406.2661)
  * Wasserstein GAN [arxiv](https://arxiv.org/abs/1701.07875)
  * DCGAN [arxiv](https://arxiv.org/abs/1511.06434)
+ * BiGAN [arxiv](https://arxiv.org/abs/1605.09782) [code - Theano](https://github.com/jeffdonahue/bigan)
  * Conditional GANs [arxiv](https://arxiv.org/abs/1411.1784)
  * LSGAN [arxiv](https://arxiv.org/abs/1611.04076)
  * SAGAN [arxiv](https://arxiv.org/abs/1805.08318)
