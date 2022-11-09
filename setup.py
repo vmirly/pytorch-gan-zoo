@@ -3,14 +3,13 @@ import os.path as osp
 import sys
 from setuptools import setup, find_packages
 
-import ganzoo
 
 NAME = "pytorch-gan-zoo"
 DESCRIPTION = "Implementation of GAN models in PyTorch."
 URL = "https://github.com/vmirly/pytorch-gan-zoo"
 AUTHOR = "Vahid Mirjalili"
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = ganzoo.__version__
+VERSION = "0.0.1"  # ganzoo.__version__
 
 
 try:
