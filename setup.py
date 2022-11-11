@@ -9,8 +9,13 @@ DESCRIPTION = "Implementation of GAN models in PyTorch."
 URL = "https://github.com/vmirly/pytorch-gan-zoo"
 AUTHOR = "Vahid Mirjalili"
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.0.1"  # ganzoo.__version__
+VERSION = None
 
+if not VERSION:
+    res = {}
+    with open(osp.join("ganzoo", "__version__.py")) as f:
+        exec(f.read(), res)
+    VERSION = res['__version__']
 
 try:
     with io.open("README.md") as fp:
