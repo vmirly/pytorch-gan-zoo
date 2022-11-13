@@ -87,6 +87,8 @@ def make_fully_connected_generator(
     model = nn.Sequential(
         nn.Linear(num_z_units, num_hidden_units),
         nn.LeakyReLU(inplace=True),
+        nn.Linear(num_hidden_units, num_hidden_units),
+        nn.LeakyReLU(inplace=True),
         nn.Dropout(p=p_drop),
         nn.Linear(num_hidden_units, output_image_size),
         nn.Tanh(),
@@ -126,6 +128,8 @@ def make_fully_connected_discriminator(
     layers = [
         nn.Flatten(),
         nn.Linear(input_feature_dim, num_hidden_units),
+        nn.LeakyReLU(inplace=True),
+        nn.Linear(num_hidden_units, num_hidden_units),
         nn.LeakyReLU(inplace=True),
         nn.Dropout(p=p_drop),
         nn.Linear(num_hidden_units, 1)]
