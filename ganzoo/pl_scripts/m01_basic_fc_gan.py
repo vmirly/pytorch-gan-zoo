@@ -7,7 +7,7 @@ import argparse
 import torch
 import pytorch_lightning as pl
 
-from ganzoo.pl_modules import basic_gan_fc
+from ganzoo.pl_modules import basic_fc_gan
 from ganzoo.misc import ops
 
 
@@ -33,7 +33,7 @@ def main(args):
         z_dim=args.z_dim,
         z_distribution=args.z_distribution, make_4d=False)
 
-    model = basic_gan_fc.PLBasicGANFC(
+    model = basic_fc_gan.PLBasicGANFC(
         num_z_units=args.z_dim,
         num_hidden_units=args.num_hidden_units,
         image_dim=28, image_channels=1, p_drop=args.p_drop,

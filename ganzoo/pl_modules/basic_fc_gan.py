@@ -70,7 +70,7 @@ class PLBasicGANFC(pl.LightningModule):
             gen_images = self(batch_z)
             d_fake = self.discriminator(gen_images)
             loss_g = self.criterion_G(d_fake)
-            self.log("d_loss", loss_g, prog_bar=True)
+            self.log("G-loss", loss_g, prog_bar=True)
             return loss_g
 
         def _training_step_D(batch_z, batch_real_images):
@@ -80,7 +80,7 @@ class PLBasicGANFC(pl.LightningModule):
             d_fake = self.discriminator(gen_images)
             loss_d_fake = self.criterion_D_fake(d_fake)
             loss_d = 0.5 * (loss_d_real + loss_d_fake)
-            self.log("d_loss", loss_d, prog_bar=True)
+            self.log("D-loss", loss_d, prog_bar=True)
             return loss_d
 
         batch_imgs, _ = batch_data
@@ -88,9 +88,10 @@ class PLBasicGANFC(pl.LightningModule):
 
         if optimizer_idx == 0:  # train G
             loss_g = _training_step_G(batch_z)
-            return loss_g
+            return {'loss': loss_g}
         else: # train D
             loss_d = _training_step_D(batch_z, batch_imgs)
+            return {'loss': loss_d}
 
     def train_dataloader(self):
         train_data = datasets.MNIST(
