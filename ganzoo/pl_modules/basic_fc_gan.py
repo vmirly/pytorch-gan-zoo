@@ -6,7 +6,7 @@ Author: Vahid Mirjalili
 from typing import Callable
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import random_split, DataLoader
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
@@ -93,10 +93,37 @@ class PLBasicGANFC(pl.LightningModule):
             loss_d = _training_step_D(batch_z, batch_imgs)
             return {'loss': loss_d}
 
+    def validation_step(self, batch_data, batch_idx):
+        res_g = self.training_step(batch_data, batch_idx, 0)
+        res_d = self.training_step(batch_data, batch_idx, 1)
+        return {'loss_g': res_g['loss'], 'loss_d': res_d['loss']}
+
+    def validation_epoch_end(self, val_step_outputs):
+        avg_val_loss_g = torch.tensor([
+            x['loss_g'] for x in val_step_outputs]).mean()
+        avg_val_loss_d = torch.tensor([
+            x['loss_d'] for x in val_step_outputs]).mean()
+        return {'val_loss_g': avg_val_loss_g, 'val_loss_d': avg_val_loss_d}
+
     def train_dataloader(self):
-        train_data = datasets.MNIST(
+        train_loader = DataLoader(self.train_data, batch_size=32)
+        return train_loader
+
+    def val_dataloader(self):
+        val_loader = DataLoader(self.val_data, batch_size=32)
+        return val_loader
+
+    def prepare_data(self):
+        # prepare_data only works on one GPU
+        # we download the data once
+        datasets.MNIST(
             'data', train=True, download=True,
             transform=transforms.ToTensor()
         )
-        train_loader = DataLoader(train_data, batch_size=32)
-        return train_loader
+
+    def setup(self, stage):
+        ds = datasets.MNIST(
+            'data', train=True, download=True,
+            transform=transforms.ToTensor()
+        )
+        self.train_data, self.val_data = random_split(ds, [55000, 5000])
