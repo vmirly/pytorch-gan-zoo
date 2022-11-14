@@ -7,6 +7,7 @@ from typing import Callable
 import numpy as np
 import torch
 from torch.utils.data import random_split, DataLoader
+import torchvision
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
@@ -15,26 +16,36 @@ import pytorch_lightning as pl
 from ganzoo.networks import fc_nets
 from ganzoo.losses import basic_losses
 from ganzoo.constants import network_constants
+from ganzoo.misc import ops
 
 
 class PLBasicGANFC(pl.LightningModule):
     def __init__(
             self,
             num_z_units: int,
+            z_distribution: str,
             num_hidden_units: int,
             image_dim: int,
             image_channels: int,
             p_drop: float,
             lr: float,
             beta1: float,
-            beta2: float,
-            z_sampler: Callable[[None], torch.Tensor]):
+            beta2: float):
+            #model: str):
 
         super().__init__()
+        self.save_hyperparameters()
+
         self.lr = lr
         self.beta1 = beta1
         self.beta2 = beta2
-        self.z_sampler = z_sampler
+
+        self.z_sampler = ops.get_latent_sampler(
+            z_dim=num_z_units,
+            z_distribution=z_distribution,
+            make_4d=False)
+
+        self.fixed_z = self.z_sampler(batch_size=32)
 
         self.generator = fc_nets.make_fully_connected_generator(
             num_z_units=num_z_units,
@@ -127,3 +138,10 @@ class PLBasicGANFC(pl.LightningModule):
             transform=transforms.ToTensor()
         )
         self.train_data, self.val_data = random_split(ds, [55000, 5000])
+
+
+    def on_validation_epoch_end(self):
+        batch_z = self.fixed_z.type_as(self.generator[0].weight)
+        val_gen_imgs = self(batch_z)
+        grid = torchvision.utils.make_grid(val_gen_imgs)
+        self.logger.experiment.add_image("generated_images", grid, self.current_epoch)

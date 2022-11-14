@@ -8,7 +8,6 @@ import torch
 import pytorch_lightning as pl
 
 from ganzoo.pl_modules import basic_fc_gan
-from ganzoo.misc import ops
 
 
 def parse(argv):
@@ -29,16 +28,13 @@ def parse(argv):
 
 
 def main(args):
-    z_sampler = ops.get_latent_sampler(
-        z_dim=args.z_dim,
-        z_distribution=args.z_distribution, make_4d=False)
 
     model = basic_fc_gan.PLBasicGANFC(
         num_z_units=args.z_dim,
+        z_distribution=args.z_distribution,
         num_hidden_units=args.num_hidden_units,
         image_dim=28, image_channels=1, p_drop=args.p_drop,
-        lr=0.001, beta1=0.5, beta2=0.9,
-        z_sampler=z_sampler)
+        lr=0.001, beta1=0.5, beta2=0.9)
 
     trainer = pl.Trainer(
         accelerator="auto",
