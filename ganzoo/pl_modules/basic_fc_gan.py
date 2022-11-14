@@ -129,13 +129,17 @@ class PLBasicGANFC(pl.LightningModule):
         # we download the data once
         datasets.MNIST(
             'data', train=True, download=True,
-            transform=transforms.ToTensor()
+            transform=None
         )
 
     def setup(self, stage):
+        trsfm = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=0.5, std=0.5)
+        ])
         ds = datasets.MNIST(
             'data', train=True, download=True,
-            transform=transforms.ToTensor()
+            transform=trsfm
         )
         self.train_data, self.val_data = random_split(ds, [55000, 5000])
 
