@@ -13,7 +13,7 @@ import torchvision.datasets as datasets
 
 import pytorch_lightning as pl
 
-from ganzoo.networks import fc_nets
+from ganzoo.nn_modules import fc_nets
 from ganzoo.losses import basic_losses
 from ganzoo.constants import network_constants
 from ganzoo.misc import ops
@@ -30,8 +30,8 @@ class PLBasicGANFC(pl.LightningModule):
             p_drop: float,
             lr: float,
             beta1: float,
-            beta2: float):
-            #model: str):
+            beta2: float,
+            network_type: str):
 
         super().__init__()
         self.save_hyperparameters()
@@ -47,18 +47,32 @@ class PLBasicGANFC(pl.LightningModule):
 
         self.fixed_z = self.z_sampler(batch_size=32)
 
-        self.generator = fc_nets.make_fully_connected_generator(
-            num_z_units=num_z_units,
-            num_hidden_units=num_hidden_units,
-            output_image_dim=image_dim,
-            output_image_channels=image_channels,
-            p_drop=p_drop)
+        if network_type == 'FC':
+            self.generator = fc_nets.make_fully_connected_generator(
+                num_z_units=num_z_units,
+                num_hidden_units=num_hidden_units,
+                output_image_dim=image_dim,
+                output_image_channels=image_channels,
+                p_drop=p_drop)
 
-        self.discriminator = fc_nets.make_fully_connected_discriminator(
-            input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
-            num_hidden_units=num_hidden_units,
-            p_drop=p_drop,
-            activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+            self.discriminator = fc_nets.make_fully_connected_discriminator(
+                input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
+                num_hidden_units=num_hidden_units,
+                p_drop=p_drop,
+                activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+        elif network_type == 'FC-ResNet':
+            self.generator = fc_nets.FCResNet_Generator(
+                num_z_units=num_z_units,
+                num_hidden_units=num_hidden_units,
+                output_image_dim=image_dim,
+                output_image_channels=image_channels,
+                p_drop=p_drop)
+
+            self.discriminator = fc_nets.FCResNet_Discriminator(
+                input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
+                num_hidden_units=num_hidden_units,
+                p_drop=p_drop,
+                activation=network_constants.DISC_ACTIVATIONS['vanilla'])
 
         self.criterion_G = basic_losses.vanilla_gan_lossfn_G
         self.criterion_D_real = basic_losses.vanilla_gan_lossfn_D_real

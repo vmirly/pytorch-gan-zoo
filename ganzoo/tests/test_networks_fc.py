@@ -4,7 +4,7 @@ Author: Vahid Mirjalili
 """
 
 from ganzoo.misc import ops
-from ganzoo.networks import fc_nets
+from ganzoo.nn_modules import fc_nets
 from ganzoo.constants import data_constants
 from ganzoo.constants import network_constants
 
