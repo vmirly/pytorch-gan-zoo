@@ -50,6 +50,57 @@ class FC_Discriminator(nn.Module):
         return self.net(x)
 
 
+class FCResNet_Generator(nn.Module):
+    def __init__(
+            self,
+            num_z_units: int,
+            num_hidden_units: int,
+            output_image_dim: int,
+            output_image_channels: int,
+            p_drop: float):
+
+        super().__init__()
+
+        self.l1 = nn.Linear(num_z_units, num_hidden_units)
+        self.l2 = nn.Linear(num_hidden_units, num_hidden_units)
+        self.l3 = nn.Linear(num_hidden_units, output_image_size)
+        self.drop = nn.Dropout(p_drop)
+        self.reshape = torch_ops.ReshapeNonBatch(
+            (output_image_channels, output_image_dim, output_image_dim))
+        self.activ = nn.Tanh()
+        
+    def forward(self, x):
+        h1 = nn.functional.relu(self.l1(x))
+        h2 = nn.functional.relu(self.l2(h1))
+        dpo = self.drop(h2)
+        logits = self.l3(dpo + h1)
+        return self.activ(logits)
+
+
+class FCResNet_Discriminator(nn.Module):
+    def __init__(
+            self,
+            input_feature_dim: int,
+            num_hidden_units: int,
+            p_drop: float,
+            activation: str):
+
+        super().__init__()
+        self.l1 = nn.Linear(input_feature_dim, num_hidden_units)
+        self.l2 = nn.Linear(num_hidden_units, num_hidden_units)
+        self.l3 = nn.Linear(num_hidden_units, 1)
+        self.drop = nn.Dropout(p_drop)
+        if activation == 'sigmoid':
+            self.activ = nn.Sigmoid()
+
+    def forward(self, x):
+        h1 = nn.functional.relu(self.l1(x))
+        h2 = nn.functional.relu(self.l2(h1))
+        dp = self.drop(h2)
+        logits = self.l3(dp + h1)
+        return self.activ(logits)
+
+
 def make_fully_connected_generator(
         num_z_units: int,
         num_hidden_units: int,
