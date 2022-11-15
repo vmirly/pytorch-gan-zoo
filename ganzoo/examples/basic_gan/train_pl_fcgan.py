@@ -17,6 +17,9 @@ def parse(argv):
         '--z_distribution', type=str, default='uniform',
         choices=['uniform', 'normal'])
     parser.add_argument(
+        '--network_type', type=str, default='FC-ResNet',
+        choices=['FC', 'FC-ResNet'])
+    parser.add_argument(
         '--num_hidden_units', type=int, default=64)
     parser.add_argument(
         '--p_drop', type=float, default=0.2)
@@ -34,7 +37,8 @@ def main(args):
         z_distribution=args.z_distribution,
         num_hidden_units=args.num_hidden_units,
         image_dim=28, image_channels=1, p_drop=args.p_drop,
-        lr=0.001, beta1=0.5, beta2=0.9)
+        lr=0.001, beta1=0.5, beta2=0.9,
+        network_type=args.network_type)
 
     trainer = pl.Trainer(
         accelerator="auto",

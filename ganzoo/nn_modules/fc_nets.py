@@ -2,7 +2,7 @@
 PyTorch GAN Zoo - Fully Connected Networks
 Author: Vahid Mirjalili
 """
-
+import numpy as np
 import torch.nn as nn
 
 from ganzoo.misc import torch_ops
@@ -61,6 +61,8 @@ class FCResNet_Generator(nn.Module):
 
         super().__init__()
 
+        output_image_size = np.prod(
+            [output_image_dim, output_image_dim, output_image_channels])
         self.l1 = nn.Linear(num_z_units, num_hidden_units)
         self.l2 = nn.Linear(num_hidden_units, num_hidden_units)
         self.l3 = nn.Linear(num_hidden_units, output_image_size)
@@ -73,8 +75,8 @@ class FCResNet_Generator(nn.Module):
         h1 = nn.functional.relu(self.l1(x))
         h2 = nn.functional.relu(self.l2(h1))
         dpo = self.drop(h2)
-        logits = self.l3(dpo + h1)
-        return self.activ(logits)
+        out = self.activ(self.l3(dpo + h1))
+        return self.reshape(out)
 
 
 class FCResNet_Discriminator(nn.Module):
@@ -86,6 +88,8 @@ class FCResNet_Discriminator(nn.Module):
             activation: str):
 
         super().__init__()
+
+        self.flatten = nn.Flatten()
         self.l1 = nn.Linear(input_feature_dim, num_hidden_units)
         self.l2 = nn.Linear(num_hidden_units, num_hidden_units)
         self.l3 = nn.Linear(num_hidden_units, 1)
@@ -94,10 +98,11 @@ class FCResNet_Discriminator(nn.Module):
             self.activ = nn.Sigmoid()
 
     def forward(self, x):
-        h1 = nn.functional.relu(self.l1(x))
+        xflat = self.flatten(x)
+        h1 = nn.functional.relu(self.l1(xflat))
         h2 = nn.functional.relu(self.l2(h1))
-        dp = self.drop(h2)
-        logits = self.l3(dp + h1)
+        dpo = self.drop(h2)
+        logits = self.l3(dpo + h1)
         return self.activ(logits)
 
 
