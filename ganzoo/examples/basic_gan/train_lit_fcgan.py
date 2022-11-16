@@ -7,7 +7,7 @@ import argparse
 import torch
 import pytorch_lightning as pl
 
-from ganzoo.pl_modules import basic_fc_gan
+from ganzoo.lit_modules import basic_fc_gan
 
 
 def parse(argv):
