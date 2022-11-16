@@ -14,7 +14,7 @@ def test_fc_networks():
     image_dim = data_constants.IMAGE_DIMS['mnist']
     image_channels = data_constants.IMAGE_CHANNELS['mnist']
 
-    generator = fc_nets.FC_Generator(
+    generator = fc_nets.FCSmall_Generator(
         num_z_units=10,
         num_hidden_units=10,
         output_image_dim=image_dim,
@@ -22,7 +22,7 @@ def test_fc_networks():
         p_drop=0.5)
 
     input_size = image_dim * image_dim * image_channels
-    discriminator = fc_nets.FC_Discriminator(
+    discriminator = fc_nets.FCSmall_Discriminator(
         input_feature_dim=input_size,
         num_hidden_units=10,
         p_drop=0.5,

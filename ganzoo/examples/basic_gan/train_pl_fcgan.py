@@ -17,8 +17,8 @@ def parse(argv):
         '--z_distribution', type=str, default='uniform',
         choices=['uniform', 'normal'])
     parser.add_argument(
-        '--network_type', type=str, default='FC-ResNet',
-        choices=['FC', 'FC-ResNet'])
+        '--network_type', type=str, default='fc-skip',
+        choices=['fc-small', 'fc-skip', 'fc-large'])
     parser.add_argument(
         '--num_hidden_units', type=int, default=64)
     parser.add_argument(
@@ -32,7 +32,7 @@ def parse(argv):
 
 def main(args):
 
-    model = basic_fc_gan.PLBasicGANFC(
+    model = basic_fc_gan.LitBasicGANFC(
         num_z_units=args.z_dim,
         z_distribution=args.z_distribution,
         num_hidden_units=args.num_hidden_units,

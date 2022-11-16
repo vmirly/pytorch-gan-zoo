@@ -27,9 +27,11 @@ def parse(argv):
 
 
 def main(args):
-    model = basic_fc_gan.PLBasicGANFC.load_from_checkpoint(
+    model = basic_fc_gan.LitBasicGANFC.load_from_checkpoint(
         args.checkpoint_path)
     print(model)
+
+    os.makedirs(args.output_dir, exist_ok=True)
 
     bz = model.z_sampler(batch_size=64)
     gen_imgs = model(bz)

@@ -3,7 +3,7 @@ PyTorch GAN Zoo
 Author: Vahid Mirjalili
 """
 
-from typing import Callable
+from typing import Callable, Tuple
 import numpy as np
 import torch
 from torch.utils.data import random_split, DataLoader
@@ -19,7 +19,60 @@ from ganzoo.constants import network_constants
 from ganzoo.misc import ops
 
 
-class PLBasicGANFC(pl.LightningModule):
+def get_fc_networks(
+        num_z_units: int,
+        num_hidden_units: int,
+        image_dim: int,
+        image_channels: int,
+        p_drop: float,
+        network_type: str) -> Tuple[torch.nn.Module]:
+
+    if network_type == 'fc-small':
+        generator = fc_nets.make_fully_connected_generator(
+            num_z_units=num_z_units,
+            num_hidden_units=num_hidden_units,
+            output_image_dim=image_dim,
+            output_image_channels=image_channels,
+            p_drop=p_drop)
+
+        discriminator = fc_nets.make_fully_connected_discriminator(
+            input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
+            num_hidden_units=num_hidden_units,
+            p_drop=p_drop,
+            activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+
+    elif network_type == 'fc-skip':
+        generator = fc_nets.FCSkipConnect_Generator(
+            num_z_units=num_z_units,
+            num_hidden_units=num_hidden_units,
+            output_image_dim=image_dim,
+            output_image_channels=image_channels,
+            p_drop=p_drop)
+
+        discriminator = fc_nets.FCSkipConnect_Discriminator(
+            input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
+            num_hidden_units=num_hidden_units,
+            p_drop=p_drop,
+            activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+
+    elif network_type == 'fc-large':
+        generator = fc_nets.FCLarge_Generator(
+            num_z_units=num_z_units,
+            num_hidden_units=num_hidden_units,
+            output_image_dim=image_dim,
+            output_image_channels=image_channels,
+            p_drop=p_drop)
+
+        discriminator = fc_nets.FCLarge_Discriminator(
+            input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
+            num_hidden_units=num_hidden_units,
+            p_drop=p_drop,
+            activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+
+    return generator, discriminator
+
+
+class LitBasicGANFC(pl.LightningModule):
     def __init__(
             self,
             num_z_units: int,
@@ -47,32 +100,13 @@ class PLBasicGANFC(pl.LightningModule):
 
         self.fixed_z = self.z_sampler(batch_size=32)
 
-        if network_type == 'FC':
-            self.generator = fc_nets.make_fully_connected_generator(
-                num_z_units=num_z_units,
-                num_hidden_units=num_hidden_units,
-                output_image_dim=image_dim,
-                output_image_channels=image_channels,
-                p_drop=p_drop)
-
-            self.discriminator = fc_nets.make_fully_connected_discriminator(
-                input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
-                num_hidden_units=num_hidden_units,
-                p_drop=p_drop,
-                activation=network_constants.DISC_ACTIVATIONS['vanilla'])
-        elif network_type == 'FC-ResNet':
-            self.generator = fc_nets.FCResNet_Generator(
-                num_z_units=num_z_units,
-                num_hidden_units=num_hidden_units,
-                output_image_dim=image_dim,
-                output_image_channels=image_channels,
-                p_drop=p_drop)
-
-            self.discriminator = fc_nets.FCResNet_Discriminator(
-                input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
-                num_hidden_units=num_hidden_units,
-                p_drop=p_drop,
-                activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+        self.generator, self.discriminator = get_fc_networks(
+            num_z_units=num_z_units,
+            num_hidden_units=num_hidden_units,
+            image_dim=image_dim,
+            image_channels=image_channels,
+            p_drop=p_drop,
+            network_type=network_type)
 
         self.criterion_G = basic_losses.vanilla_gan_lossfn_G
         self.criterion_D_real = basic_losses.vanilla_gan_lossfn_D_real
