@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F
 
 
-def basic_gan_lossfn_G(d_fake: torch.Tensor) -> torch.Tensor:
+def vanilla_gan_lossfn_G(d_fake: torch.Tensor) -> torch.Tensor:
     """
     Basic GAN loss for the generator network
     """
@@ -16,7 +16,7 @@ def basic_gan_lossfn_G(d_fake: torch.Tensor) -> torch.Tensor:
         target=torch.ones_like(d_fake))
 
 
-def basic_gan_lossfn_D_real(d_real: torch.Tensor) -> torch.Tensor:
+def vanilla_gan_lossfn_D_real(d_real: torch.Tensor) -> torch.Tensor:
     """
     Basic GAN loss for the discriminator network
     (real data)
@@ -26,7 +26,7 @@ def basic_gan_lossfn_D_real(d_real: torch.Tensor) -> torch.Tensor:
         target=torch.ones_like(d_real))
 
 
-def basic_gan_lossfn_D_fake(d_fake: torch.Tensor) -> torch.Tensor:
+def vanilla_gan_lossfn_D_fake(d_fake: torch.Tensor) -> torch.Tensor:
     """
     Basic GAN loss for the discriminator network
     (fake/synthesized data)
