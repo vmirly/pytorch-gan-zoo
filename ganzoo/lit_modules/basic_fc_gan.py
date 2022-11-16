@@ -164,34 +164,6 @@ class LitBasicGANFC(pl.LightningModule):
             x['loss_d'] for x in val_step_outputs]).mean()
         return {'val_loss_g': avg_val_loss_g, 'val_loss_d': avg_val_loss_d}
 
-    def train_dataloader(self):
-        train_loader = DataLoader(self.train_data, batch_size=32)
-        return train_loader
-
-    def val_dataloader(self):
-        val_loader = DataLoader(self.val_data, batch_size=32)
-        return val_loader
-
-    def prepare_data(self):
-        # prepare_data only works on one GPU
-        # we download the data once
-        datasets.MNIST(
-            'data', train=True, download=True,
-            transform=None
-        )
-
-    def setup(self, stage):
-        trsfm = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(mean=0.5, std=0.5)
-        ])
-        ds = datasets.MNIST(
-            'data', train=True, download=True,
-            transform=trsfm
-        )
-        self.train_data, self.val_data = random_split(ds, [55000, 5000])
-
-
     def on_validation_epoch_end(self):
         batch_z = self.fixed_z.type_as(next(self.generator.parameters()))
         val_gen_imgs = self(batch_z)
