@@ -3,22 +3,38 @@ PyTorch GAN Zoo - data constants
 Author: Vahid Mirjalili
 """
 
+# datasets names - strings
+NAMESTR_MNIST = 'mnist'
+NAMESTR_FASHIONMNIST = 'fashion-mnist'
+NAMESTR_CIFAR10 = 'cifar10'
+NAMESTR_CIFAR100 = 'cifar100'
+NAMESTR_CELEBA = 'celebA'
+NAMESTR_IMAGEFOLDER = 'custom-image-folder'
+
+# list of downloadable datasets
+DOWNLOADABLE_DATASETS = [
+    NAMESTR_MNIST, NAMESTR_FASHIONMNIST,
+    NAMESTR_CIFAR10, NAMESTR_CIFAR100,
+    NAMESTR_CELEBA
+]
+
 # Image dimensions
 IMAGE_DIMS = {
-    'mnist': 28,
-    'fashion-mnist': 28,
-    'cifar10': 32
+    NAMESTR_MNIST: (28, 28, 1),
+    NAMESTR_FASHIONMNIST: (28, 28, 1),
+    NAMESTR_CIFAR10: (32, 32, 3),
+    NAMESTR_CIFAR100: (32, 32, 3),
+    NAMESTR_CELEBA: (218, 178, 3),
+
+    NAMESTR_IMAGEFOLDER: None 
 }
 
 NUM_CLASSES = {
-    'mnist': 10,
-    'fashion-mnist': 10,
-    'cifar10': 10
-}
+    NAMESTR_MNIST: 10,
+    NAMESTR_FASHIONMNIST: 10,
+    NAMESTR_CIFAR10: 10,
+    NAMESTR_CIFAR10: 100,
+    NAMESTR_CELEBA: None,
 
-IMAGE_CHANNELS = {
-    'mnist': 1,
-    'fashion-mnist': 1,
-    'celebA': 3,
-    'cifar10': 3
+    NAMESTR_IMAGEFOLDER: None
 }
