@@ -13,13 +13,20 @@ List of keys for models:
 """
 from ganzoo.constants import names
 
+# FC networks
+FC_HIDDEN_UNITS = 128
+
 # evaluation examples
 NUM_EVAL_IMAGES = 64
 
 # Network Parameters
 Z_DIM = 100
 
-FC_HIDDEN_DIMS = {
+NUM_EPOCHS = 100
+DROPOUT_PROBA = 0.5
+PROBA_HFLIP = 0.5
+
+FC_HIDDEN_DIMS = {  # TODO: remove if unused
     names.NAMESTR_VANILLA: 128,
     names.NAMESTR_LSGAN: 128,
     names.NAMESTR_WGAN: 128,
@@ -28,9 +35,6 @@ FC_HIDDEN_DIMS = {
     names.NAMESTR_WGANLP: 128,
     names.NAMESTR_BEGAN: None  # BEGAN has its own architecture
 }
-
-DROPOUT_PROBA = 0.5
-PROBA_HFLIP = 0.5
 
 NUM_CONV_FILTERS = {
     names.NAMESTR_VANILLA: 32,

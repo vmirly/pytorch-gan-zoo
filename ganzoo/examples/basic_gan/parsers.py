@@ -35,7 +35,7 @@ def parse_basicfc_train_opts(argv):
 
     parser.add_argument(
         '--p_drop', type=float, required=False,
-        default=defaults.DROP_PROBA)
+        default=defaults.DROPOUT_PROBA)
 
     parser.add_argument(
         '--num_epochs', type=int, required=False,

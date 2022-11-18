@@ -3,7 +3,6 @@ PyTorch GAN Zoo -- script to run PL-basic-FC-GAN
 Author: Vahid Mirjalili
 """
 import sys
-import argparse
 import torch
 import pytorch_lightning as pl
 import torchvision
@@ -11,45 +10,7 @@ from torchvision import transforms as T
 
 from ganzoo.lit_modules import basic_fc_gan
 from ganzoo.lit_modules import lit_data_vision
-from ganzoo.constants import names
-from ganzoo.constants import defaults
-
-
-def parse(argv):
-    parser = argparse.ArgumentParser(__file__)
-    
-    parser.add_argument(
-        '--dataset_name', type=str, required=True,  # TODO: add custom-folder 
-        choices=names.DOWNLOADABLE_DATASETS)
-
-    parser.add_argument(
-        '--z_dim', type=int, required=False,
-        default=defaults.Z_DIM)
-
-    parser.add_argument(
-        '--z_distribution', type=str,
-        default=names.NAMESTR_UNIFORM,
-        choices=names.LIST_DISTRBUTIONS)
-
-    parser.add_argument(
-        '--network_type', type=str,
-        default=names.NAMESTR_FCSKIP,
-        choices=names.LIST_FC_NETWORKS)
-
-    parser.add_argument(
-        '--num_hidden_units', type=int,
-        default=defaults.FC_HIDDEN_UNITS)
-
-    parser.add_argument(
-        '--p_drop', type=float, required=False,
-        default=defaults.DROP_PROBA)
-
-    parser.add_argument(
-        '--num_epochs', type=int, required=False,
-        default=defaults.NUM_EPOCHS)
-
-    args = parser.parse_args()
-    return args
+from ganzoo.examples.basic_gan import parsers
 
 
 def main(args):
@@ -58,11 +19,11 @@ def main(args):
         num_z_units=args.z_dim,
         z_distribution=args.z_distribution,
         num_hidden_units=args.num_hidden_units,
-        image_dim=28, image_channels=1, p_drop=args.p_drop,
+        image_dim=32, image_channels=3, p_drop=args.p_drop,
         lr=0.001, beta1=0.5, beta2=0.9,
         network_type=args.network_type)
 
-    trsfm = T.Compose([T.ToTensor(), T.Normalize(0.5, 0.5)])
+    trsfm = T.Compose([T.ToTensor(), T.Normalize(mean=0.5, std=0.5)])
 
     dm = lit_data_vision.LitVisionDataset(
         dataset_name=args.dataset_name,
@@ -79,5 +40,5 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = parse(sys.argv[1:])
+    args = parsers.parse_basicfc_train_opts(sys.argv[1:])
     main(args)

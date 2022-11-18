@@ -5,7 +5,7 @@ Author: Vahid Mirjalili
 from ganzoo.constants import names
 
 # Image dimensions
-IMAGE_DIMS = {
+IMAGE_SHAPES = {
     names.NAMESTR_MNIST: (28, 28, 1),
     names.NAMESTR_FASHIONMNIST: (28, 28, 1),
     names.NAMESTR_CIFAR10: (32, 32, 3),

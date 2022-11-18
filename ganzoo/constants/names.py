@@ -24,7 +24,7 @@ DOWNLOADABLE_DATASETS = [
 #================================#
 NAMESTR_UNIFORM = 'uniform'
 NAMESTR_NORMAL = 'normal'
-LIST_DISTRBUTIONS = [NAMESTR_UNIFORM, LIST_DISTRBUTIONS]
+LIST_DISTRBUTIONS = [NAMESTR_UNIFORM, NAMESTR_NORMAL]
 
 #================================#
 #            MODELS              #
