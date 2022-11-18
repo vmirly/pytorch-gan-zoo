@@ -1,21 +1,14 @@
+
 """
-PyTorch GAN Zoo -- script to run PL-basic-FC-GAN
+PyTorch GAN Zoo
 Author: Vahid Mirjalili
 """
-import sys
 import argparse
-import torch
-import pytorch_lightning as pl
-import torchvision
-from torchvision import transforms as T
-
-from ganzoo.lit_modules import basic_fc_gan
-from ganzoo.lit_modules import lit_data_vision
 from ganzoo.constants import names
 from ganzoo.constants import defaults
 
 
-def parse(argv):
+def parse_basicfc_train_opts(argv):
     parser = argparse.ArgumentParser(__file__)
     
     parser.add_argument(
@@ -50,34 +43,3 @@ def parse(argv):
 
     args = parser.parse_args()
     return args
-
-
-def main(args):
-
-    model = basic_fc_gan.LitBasicGANFC(
-        num_z_units=args.z_dim,
-        z_distribution=args.z_distribution,
-        num_hidden_units=args.num_hidden_units,
-        image_dim=28, image_channels=1, p_drop=args.p_drop,
-        lr=0.001, beta1=0.5, beta2=0.9,
-        network_type=args.network_type)
-
-    trsfm = T.Compose([T.ToTensor(), T.Normalize(0.5, 0.5)])
-
-    dm = lit_data_vision.LitVisionDataset(
-        dataset_name=args.dataset_name,
-        transform=trsfm,
-        splits=(0.9, 0.1),
-        batch_size=32)
-
-    trainer = pl.Trainer(
-        accelerator="auto",
-        devices=1 if torch.cuda.is_available() else None,
-        max_epochs=args.num_epochs,
-    )
-    trainer.fit(model, dm)
-
-
-if __name__ == '__main__':
-    args = parse(sys.argv[1:])
-    main(args)

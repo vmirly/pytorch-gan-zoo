@@ -2,39 +2,25 @@
 PyTorch GAN Zoo - data constants
 Author: Vahid Mirjalili
 """
-
-# datasets names - strings
-NAMESTR_MNIST = 'mnist'
-NAMESTR_FASHIONMNIST = 'fashion-mnist'
-NAMESTR_CIFAR10 = 'cifar10'
-NAMESTR_CIFAR100 = 'cifar100'
-NAMESTR_CELEBA = 'celebA'
-NAMESTR_IMAGEFOLDER = 'custom-image-folder'
-
-# list of downloadable datasets
-DOWNLOADABLE_DATASETS = [
-    NAMESTR_MNIST, NAMESTR_FASHIONMNIST,
-    NAMESTR_CIFAR10, NAMESTR_CIFAR100,
-    NAMESTR_CELEBA
-]
+from ganzoo.constants import names
 
 # Image dimensions
 IMAGE_DIMS = {
-    NAMESTR_MNIST: (28, 28, 1),
-    NAMESTR_FASHIONMNIST: (28, 28, 1),
-    NAMESTR_CIFAR10: (32, 32, 3),
-    NAMESTR_CIFAR100: (32, 32, 3),
-    NAMESTR_CELEBA: (218, 178, 3),
+    names.NAMESTR_MNIST: (28, 28, 1),
+    names.NAMESTR_FASHIONMNIST: (28, 28, 1),
+    names.NAMESTR_CIFAR10: (32, 32, 3),
+    names.NAMESTR_CIFAR100: (32, 32, 3),
+    names.NAMESTR_CELEBA: (218, 178, 3),
 
-    NAMESTR_IMAGEFOLDER: None 
+    names.NAMESTR_IMAGEFOLDER: None 
 }
 
 NUM_CLASSES = {
-    NAMESTR_MNIST: 10,
-    NAMESTR_FASHIONMNIST: 10,
-    NAMESTR_CIFAR10: 10,
-    NAMESTR_CIFAR10: 100,
-    NAMESTR_CELEBA: None,
+    names.NAMESTR_MNIST: 10,
+    names.NAMESTR_FASHIONMNIST: 10,
+    names.NAMESTR_CIFAR10: 10,
+    names.NAMESTR_CIFAR10: 100,
+    names.NAMESTR_CELEBA: None,
 
-    NAMESTR_IMAGEFOLDER: None
+    names.NAMESTR_IMAGEFOLDER: None
 }
