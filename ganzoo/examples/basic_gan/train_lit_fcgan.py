@@ -3,6 +3,7 @@ PyTorch GAN Zoo -- script to run PL-basic-FC-GAN
 Author: Vahid Mirjalili
 """
 import sys
+import logging
 import torch
 import pytorch_lightning as pl
 import torchvision
@@ -11,15 +12,26 @@ from torchvision import transforms as T
 from ganzoo.lit_modules import basic_fc_gan
 from ganzoo.lit_modules import lit_data_vision
 from ganzoo.examples.basic_gan import parsers
+from ganzoo.misc import utils
 
 
 def main(args):
+
+    image_shape, msg = utils.get_dataset_props(args.dataset_name)
+    if msg:
+        return msg
+    image_h, image_w, image_c = image_shape
+    if image_h != image_w:
+        return 'image is not squared: image_dim is not defined'
+    image_dim = image_h
+    image_channels = image_c
 
     model = basic_fc_gan.LitBasicGANFC(
         num_z_units=args.z_dim,
         z_distribution=args.z_distribution,
         num_hidden_units=args.num_hidden_units,
-        image_dim=32, image_channels=3, p_drop=args.p_drop,
+        image_dim=image_dim, image_channels=image_channels,
+        p_drop=args.p_drop,
         lr=0.001, beta1=0.5, beta2=0.9,
         network_type=args.network_type)
 
@@ -41,4 +53,7 @@ def main(args):
 
 if __name__ == '__main__':
     args = parsers.parse_basicfc_train_opts(sys.argv[1:])
-    main(args)
+    msg = main(args)
+    if msg:
+        logging.error(msg)
+        sys.exit(1)
