@@ -21,7 +21,7 @@ def test_fc_networks():
         (fc_nets.FCLarge_Generator, fc_nets.FCLarge_Discriminator)
     ]
     for gen_class, disc_class in classes:
-        generator = fc_nets.FCSmall_Generator(
+        generator = gen_class(
             num_z_units=10,
             num_hidden_units=10,
             output_image_dim=image_dim,
@@ -29,7 +29,7 @@ def test_fc_networks():
             p_drop=0.5)
 
         input_size = image_dim * image_dim * image_channels
-        discriminator = fc_nets.FCSmall_Discriminator(
+        discriminator = disc_class(
             input_feature_dim=input_size,
             num_hidden_units=10,
             p_drop=0.5,
