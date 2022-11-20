@@ -6,13 +6,14 @@ Author: Vahid Mirjalili
 from ganzoo.misc import ops
 from ganzoo.nn_modules import fc_nets
 from ganzoo.constants import data_constants
-from ganzoo.constants import network_constants
+from ganzoo.constants import names
+from ganzoo.constants import defaults
 
 
 def test_fc_networks():
 
-    image_dim = data_constants.IMAGE_DIMS['mnist']
-    image_channels = data_constants.IMAGE_CHANNELS['mnist']
+    image_shape = data_constants.IMAGE_SHAPES[names.NAMESTR_MNIST]
+    image_dim, image_channels = image_shape[0], image_shape[2]
 
     classes = [
         (fc_nets.FCSmall_Generator, fc_nets.FCSmall_Discriminator),
@@ -32,12 +33,12 @@ def test_fc_networks():
             input_feature_dim=input_size,
             num_hidden_units=10,
             p_drop=0.5,
-            activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+            activation=defaults.DISC_ACTIVATIONS['vanilla'])
 
         # test with uniform z
         sample_z = ops.get_latent_sampler(
             z_dim=10,
-            z_distribution='uniform',
+            z_distribution=names.NAMESTR_UNIFORM,
             make_4d=False)
         z = sample_z(batch_size=2)
 
@@ -50,7 +51,7 @@ def test_fc_networks():
         # test with normal z
         sample_z = ops.get_latent_sampler(
             z_dim=10,
-            z_distribution='normal',
+            z_distribution=names.NAMESTR_UNIFORM,
             make_4d=False)
         z = sample_z(batch_size=2)
 

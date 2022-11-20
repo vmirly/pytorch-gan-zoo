@@ -15,7 +15,7 @@ import pytorch_lightning as pl
 
 from ganzoo.nn_modules import fc_nets
 from ganzoo.losses import basic_losses
-from ganzoo.constants import network_constants
+from ganzoo.constants import defaults
 from ganzoo.misc import ops
 
 
@@ -28,18 +28,18 @@ def get_fc_networks(
         network_type: str) -> Tuple[torch.nn.Module]:
 
     if network_type == 'fc-small':
-        generator = fc_nets.make_fully_connected_generator(
+        generator = fc_nets.FCSmall_Generator(
             num_z_units=num_z_units,
             num_hidden_units=num_hidden_units,
             output_image_dim=image_dim,
             output_image_channels=image_channels,
             p_drop=p_drop)
 
-        discriminator = fc_nets.make_fully_connected_discriminator(
+        discriminator = fc_nets.FCSmall_Discriminator(
             input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
             num_hidden_units=num_hidden_units,
             p_drop=p_drop,
-            activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+            activation=defaults.DISC_ACTIVATIONS['vanilla'])
 
     elif network_type == 'fc-skip':
         generator = fc_nets.FCSkipConnect_Generator(
@@ -53,7 +53,7 @@ def get_fc_networks(
             input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
             num_hidden_units=num_hidden_units,
             p_drop=p_drop,
-            activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+            activation=defaults.DISC_ACTIVATIONS['vanilla'])
 
     elif network_type == 'fc-large':
         generator = fc_nets.FCLarge_Generator(
@@ -67,7 +67,7 @@ def get_fc_networks(
             input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
             num_hidden_units=num_hidden_units,
             p_drop=p_drop,
-            activation=network_constants.DISC_ACTIVATIONS['vanilla'])
+            activation=defaults.DISC_ACTIVATIONS['vanilla'])
 
     return generator, discriminator
 
@@ -163,34 +163,6 @@ class LitBasicGANFC(pl.LightningModule):
         avg_val_loss_d = torch.tensor([
             x['loss_d'] for x in val_step_outputs]).mean()
         return {'val_loss_g': avg_val_loss_g, 'val_loss_d': avg_val_loss_d}
-
-    def train_dataloader(self):
-        train_loader = DataLoader(self.train_data, batch_size=32)
-        return train_loader
-
-    def val_dataloader(self):
-        val_loader = DataLoader(self.val_data, batch_size=32)
-        return val_loader
-
-    def prepare_data(self):
-        # prepare_data only works on one GPU
-        # we download the data once
-        datasets.MNIST(
-            'data', train=True, download=True,
-            transform=None
-        )
-
-    def setup(self, stage):
-        trsfm = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize(mean=0.5, std=0.5)
-        ])
-        ds = datasets.MNIST(
-            'data', train=True, download=True,
-            transform=trsfm
-        )
-        self.train_data, self.val_data = random_split(ds, [55000, 5000])
-
 
     def on_validation_epoch_end(self):
         batch_z = self.fixed_z.type_as(next(self.generator.parameters()))

@@ -2,23 +2,25 @@
 PyTorch GAN Zoo - data constants
 Author: Vahid Mirjalili
 """
+from ganzoo.constants import names
 
 # Image dimensions
-IMAGE_DIMS = {
-    'mnist': 28,
-    'fashion-mnist': 28,
-    'cifar10': 32
+IMAGE_SHAPES = {
+    names.NAMESTR_MNIST: (28, 28, 1),
+    names.NAMESTR_FASHIONMNIST: (28, 28, 1),
+    names.NAMESTR_CIFAR10: (32, 32, 3),
+    names.NAMESTR_CIFAR100: (32, 32, 3),
+    names.NAMESTR_CELEBA: (218, 178, 3),
+
+    names.NAMESTR_IMAGEFOLDER: None 
 }
 
 NUM_CLASSES = {
-    'mnist': 10,
-    'fashion-mnist': 10,
-    'cifar10': 10
-}
+    names.NAMESTR_MNIST: 10,
+    names.NAMESTR_FASHIONMNIST: 10,
+    names.NAMESTR_CIFAR10: 10,
+    names.NAMESTR_CIFAR10: 100,
+    names.NAMESTR_CELEBA: None,
 
-IMAGE_CHANNELS = {
-    'mnist': 1,
-    'fashion-mnist': 1,
-    'celebA': 3,
-    'cifar10': 3
+    names.NAMESTR_IMAGEFOLDER: None
 }
