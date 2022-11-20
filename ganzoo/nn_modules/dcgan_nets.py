@@ -64,13 +64,13 @@ class DCGAN_Discriminator(nn.Module):
     def __init__(
             self,
             image_dim: int,
-            num_inp_channels: int,
+            image_channels: int,
             num_conv_filters: int,
             activation: str):
 
         super().__init__()
 
-        nf0 = num_inp_channels
+        nf0 = image_channels
         nf1 = num_conv_filters
         nf2 = num_conv_filters * 2
         nf3 = num_conv_filters * 4

@@ -23,7 +23,7 @@ def test_dcgan_networks():
 
     discriminator = dcgan_nets.DCGAN_Discriminator(
         image_dim=image_dim,
-        num_inp_channels=image_channels,
+        image_channels=image_channels,
         num_conv_filters=2,
         activation=defaults.DISC_ACTIVATIONS['vanilla'])
 

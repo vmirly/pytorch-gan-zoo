@@ -89,16 +89,12 @@ class LitBasicGANFC(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        self.lr = lr
-        self.beta1 = beta1
-        self.beta2 = beta2
-
         self.z_sampler = ops.get_latent_sampler(
             z_dim=num_z_units,
             z_distribution=z_distribution,
             make_4d=False)
 
-        self.fixed_z = self.z_sampler(batch_size=32)
+        self.fixed_z = self.z_sampler(batch_size=defaults.VALIDATION_SIZE)
 
         self.generator, self.discriminator = get_fc_networks(
             num_z_units=num_z_units,
@@ -118,10 +114,14 @@ class LitBasicGANFC(pl.LightningModule):
     def configure_optimizers(self):
         optim_G = torch.optim.Adam(
             self.generator.parameters(),
-            lr=self.lr, betas=(self.beta1, self.beta2))
+            lr=self.hparams.lr,
+            betas=(self.hparams.beta1, self.hparams.beta2)
+        )
         optim_D = torch.optim.Adam(
             self.discriminator.parameters(),
-            lr=self.lr, betas=(self.beta1, self.beta2))
+            lr=self.hparams.lr,
+            betas=(self.hparams.beta1, self.hparams.beta2)
+        )
         return [optim_G, optim_D], []
 
     def training_step(self, batch_data, batch_idx, optimizer_idx):
@@ -168,4 +168,5 @@ class LitBasicGANFC(pl.LightningModule):
         batch_z = self.fixed_z.type_as(next(self.generator.parameters()))
         val_gen_imgs = self(batch_z)
         grid = torchvision.utils.make_grid(val_gen_imgs)
-        self.logger.experiment.add_image("generated_images", grid, self.current_epoch)
+        self.logger.experiment.add_image(
+            "generated_images", grid, self.current_epoch)
