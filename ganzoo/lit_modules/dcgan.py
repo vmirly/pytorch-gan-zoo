@@ -54,6 +54,10 @@ class LitDCGAN(pl.LightningModule):
             num_conv_filters=num_conv_filters,
             activation=activation)
 
+        # initialize networks
+        self.generator.apply(ops.initialize_weights)
+        self.discriminator.apply(ops.initialize_weights)
+
         self.criterion_G = basic_losses.vanilla_gan_lossfn_G
         self.criterion_D_real = basic_losses.vanilla_gan_lossfn_D_real
         self.criterion_D_fake = basic_losses.vanilla_gan_lossfn_D_fake
@@ -98,7 +102,7 @@ class LitDCGAN(pl.LightningModule):
         if optimizer_idx == 0:  # train G
             loss_g = _training_step_G(batch_z)
             return {'loss': loss_g}
-        else: # train D
+        else:  # train D
             loss_d = _training_step_D(batch_z, batch_imgs)
             return {'loss': loss_d}
 
@@ -117,6 +121,8 @@ class LitDCGAN(pl.LightningModule):
     def on_validation_epoch_end(self):
         batch_z = self.fixed_z.type_as(next(self.generator.parameters()))
         val_gen_imgs = self(batch_z)
-        grid = torchvision.utils.make_grid(val_gen_imgs)
+        # val_gen_imgs = ops.unnormalize_torch(val_gen_imgs)
+        grid = torchvision.utils.make_grid(
+            val_gen_imgs, normalize=True, valuerange=(-1, 1))
         self.logger.experiment.add_image(
             "generated_images", grid, self.current_epoch)

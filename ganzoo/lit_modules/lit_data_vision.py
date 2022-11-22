@@ -10,8 +10,9 @@ import torch
 from torch.utils.data import random_split, DataLoader
 import torchvision
 from torchvision import datasets
-
 import pytorch_lightning as pl
+
+from ganzoo.constants import names
 
 
 root_dir = os.path.join(Path.home(), '.ganzoo_data')
@@ -37,7 +38,7 @@ class LitVisionDataset(pl.LightningDataModule):
             datasets.MNIST(root_dir, train=True, download=True)
         elif self.dataset_name == 'fashion-mnist':
             datasets.FashionMNIST(root_dir, train=True, download=True)
-        elif self.dataset_name == 'celeba':
+        elif self.dataset_name == names.NAMESTR_CELEBA:
             datasets.CelebA(root_dir, split='all', download=True)
         elif self.dataset_name == 'cifar10':
             datasets.CIFAR10(root_dir, train=True, download=True)
@@ -61,7 +62,7 @@ class LitVisionDataset(pl.LightningDataModule):
             ds = datasets.FashionMNIST(
                 root_dir, train=True, download=False,
                 transform=self.transform)
-        elif self.dataset_name == 'celeba':
+        elif self.dataset_name == 'celebA':
             ds = datasets.CelebA(
                 root_dir, split='all', download=False,
                 transform=self.transform)

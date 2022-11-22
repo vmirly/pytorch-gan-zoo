@@ -24,7 +24,7 @@ def main(args):
     image_h, image_w, image_c = image_shape
 
     if image_h != image_w:
-        if max([image_h, image_w]) > 32 and min([mage_h, image_w]) < 32:
+        if max([image_h, image_w]) > 32 and min([image_h, image_w]) < 32:
             return 'Unexpected data shape!'
 
     image_dim = image_h
@@ -38,11 +38,16 @@ def main(args):
         lr=0.001, beta1=0.5, beta2=0.9
     )
 
+    if image_channels == 3:
+        norm_mean = (0.5, 0.5, 0.5)
+        norm_std = (0.5, 0.5, 0.5)
+    else:
+        norm_mean, norm_std = 0.5, 0.5
     trsfm = T.Compose([
         T.Resize(32),
         T.CenterCrop(32),
         T.ToTensor(),
-        T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        T.Normalize(mean=norm_mean, std=norm_std)
     ])
 
     dm = lit_data_vision.LitVisionDataset(

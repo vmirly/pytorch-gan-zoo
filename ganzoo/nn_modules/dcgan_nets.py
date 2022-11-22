@@ -27,7 +27,6 @@ class DCGAN_Generator(nn.Module):
 
         super().__init__()
 
-        nf0 = num_z_units
         nch = output_image_channels
         nf0 = num_z_units
         nf1 = num_conv_filters * 4
@@ -42,8 +41,8 @@ class DCGAN_Generator(nn.Module):
 
         self.net = nn.Sequential(
             z_projector,
-            ConvBlockUpsample(nf1, nf2, use_normalizer=True),
-            ConvBlockUpsample(nf2, nf3, use_normalizer=True),
+            UpsampleBlock(nf1, nf2, use_normalizer=True),
+            UpsampleBlock(nf2, nf3, use_normalizer=True),
             nn.ConvTranspose2d(nf3, nch, 4, 2, 1, bias=False),
             nn.Tanh())
 
@@ -81,9 +80,9 @@ class DCGAN_Discriminator(nn.Module):
             last_activation = nn.Identity()  # type: ignore
 
         self.net = nn.Sequential(
-            ConvBlockDownsample(nf0, nf1, False),
-            ConvBlockDownsample(nf1, nf2, True),
-            ConvBlockDownsample(nf2, nf3, True),
+            DownsampleBlock(nf0, nf1, False),
+            DownsampleBlock(nf1, nf2, True),
+            DownsampleBlock(nf2, nf3, True),
             nn.Conv2d(nf3, 1, 4, 1, 0, bias=False),
             last_activation)
 
@@ -91,10 +90,10 @@ class DCGAN_Discriminator(nn.Module):
         return self.net(inputs).squeeze()
 
 #=========================================#
-#   helper function: ConvBlockUpsample    #
+#   helper function: UpsampleBlock    #
 #=========================================#
 
-class ConvBlockUpsample(nn.Module):
+class UpsampleBlock(nn.Module):
     """
     Convolution block for upsampling for use in Generator
     """
@@ -129,7 +128,7 @@ class ConvBlockUpsample(nn.Module):
         return self.main(inputs)
 
 
-class ConvBlockDownsample(nn.Module):
+class DownsampleBlock(nn.Module):
     """
     Convolution block for downsampling inputs
     for use in Discriminator

@@ -9,7 +9,18 @@ from typing import Callable, Deque, Union
 
 import numpy as np
 import torch
+import torch.nn as nn
 from torch.optim.lr_scheduler import StepLR, LambdaLR
+
+
+def initialize_weights(m):
+    classname = m.__class__.__name__
+    print(m, classname)
+    if classname.find('Conv') != -1:
+        nn.init.normal_(m.weight.data, 0.0, 0.02)
+    elif classname.find('BatchNorm') != -1:
+        nn.init.normal_(m.weight.data, 1.0, 0.02)
+        nn.init.constant_(m.bias.data, 0)
 
 
 def get_latent_sampler(
@@ -37,12 +48,35 @@ def get_latent_sampler(
     return sample_z_normal
 
 
-def unnormalize(images: np.ndarray) -> np.ndarray:
+def unnormalize_numpy(images: np.ndarray) -> np.ndarray:
+    """
+    Unnormalize a batch of images with shape [B, C, H, W]
+    Argument:
+     - images: np.ndarray
+    Return:
+     - np.ndarray
+    """
     n_channels = images.shape[1]
     mean = [0.5] * n_channels
     scale = [0.5] * n_channels
     mean = np.array(mean)[:, np.newaxis, np.newaxis]
     scale = np.array(scale)[:, np.newaxis, np.newaxis]
+    return images * scale + mean
+
+
+def unnormalize_torch(images: torch.Tensor) -> torch.Tensor:
+    """
+    Unnormalize a batch of images with shape [B, C, H, W]
+    Argument:
+     - images: torch.Tensor
+    Return:
+     - torch.Tensor
+    """
+    n_channels = images.shape[1]
+    mean = [0.5] * n_channels
+    scale = [0.5] * n_channels
+    mean = torch.tensor(mean).type_as(images).view(-1, 1, 1)
+    scale = torch.tensor(scale).type_as(images).view(-1, 1, 1)
     return images * scale + mean
 
 
