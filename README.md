@@ -3,7 +3,7 @@
 <img src="./notebooks/snapshots/cover-image.png" width="500"/>
 
 Train and evaluate basic FC-GAN:
-
+```
 # train on fashion-mnist
 python -m ganzoo.examples.basic_gan.train_fc \
     --z_dim=100 --num_hidden_units=256 \
@@ -14,7 +14,7 @@ python -m ganzoo.examples.basic_gan.train_fc \
 python -m ganzoo.examples.basic_gan.eval_fc \
     lightning_logs/version_1/checkpoints/epoch\=99-step\=337600.ckpt \
     --output_dir lightning_logs/version_1/outputs
-
+```
 
 
 A collection of GAN models implemented in PyTorch:
