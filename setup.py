@@ -10,6 +10,7 @@ URL = "https://github.com/vmirly/pytorch-gan-zoo"
 AUTHOR = "Vahid Mirjalili"
 REQUIRES_PYTHON = ">=3.6.0"
 VERSION = None
+TEXT_MARKDOWN = 'text/markdown'
 
 if not VERSION:
     res = {}
@@ -38,6 +39,7 @@ setup(
     version=VERSION,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
+    long_description_content_type=TEXT_MARKDOWN,
     maintainer=AUTHOR,
     python_requires=REQUIRES_PYTHON,
     url=URL,
