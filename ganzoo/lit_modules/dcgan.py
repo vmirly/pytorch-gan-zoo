@@ -121,7 +121,6 @@ class LitDCGAN(pl.LightningModule):
     def on_validation_epoch_end(self):
         batch_z = self.fixed_z.type_as(next(self.generator.parameters()))
         val_gen_imgs = self(batch_z)
-        # val_gen_imgs = ops.unnormalize_torch(val_gen_imgs)
         grid = torchvision.utils.make_grid(
             val_gen_imgs, normalize=True, valuerange=(-1, 1))
         self.logger.experiment.add_image(

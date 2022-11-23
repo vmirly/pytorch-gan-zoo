@@ -27,14 +27,14 @@ def main(args):
         if max([image_h, image_w]) > 32 and min([image_h, image_w]) < 32:
             return 'Unexpected data shape!'
 
-    image_dim = image_h
     image_channels = image_c
 
     model = dcgan.LitDCGAN(
         num_z_units=args.z_dim,
         z_distribution=args.z_distribution,
         num_conv_filters=args.num_conv_filters,
-        image_dim=32, image_channels=image_channels,
+        image_dim=args.desired_image_size,
+        image_channels=image_channels,
         lr=0.001, beta1=0.5, beta2=0.9
     )
 
@@ -44,8 +44,8 @@ def main(args):
     else:
         norm_mean, norm_std = 0.5, 0.5
     trsfm = T.Compose([
-        T.Resize(32),
-        T.CenterCrop(32),
+        T.Resize(args.desired_image_size),
+        T.CenterCrop(args.desired_image_size),
         T.ToTensor(),
         T.Normalize(mean=norm_mean, std=norm_std)
     ])

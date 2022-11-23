@@ -29,9 +29,25 @@ class DCGAN_Generator(nn.Module):
 
         nch = output_image_channels
         nf0 = num_z_units
-        nf1 = num_conv_filters * 4
-        nf2 = num_conv_filters * 2
-        nf3 = num_conv_filters
+
+        if output_image_dim == 32:
+            nf1 = num_conv_filters * 4
+            nf2 = num_conv_filters * 2
+            nf3 = num_conv_filters
+            nf4 = None
+        else:  # 64x64
+            nf1 = num_conv_filters * 8
+            nf2 = num_conv_filters * 4
+            nf3 = num_conv_filters * 2
+            nf4 = num_conv_filters
+
+        up_blocks = [
+            UpsampleBlock(nf1, nf2, use_normalizer=True),
+            UpsampleBlock(nf2, nf3, use_normalizer=True)
+        ]
+        if nf4:
+            up_blocks.append(
+                UpsampleBlock(nf3, nf4, use_normalizer=True))
 
         # first block: project z
         z_projector = nn.Sequential(
@@ -41,9 +57,9 @@ class DCGAN_Generator(nn.Module):
 
         self.net = nn.Sequential(
             z_projector,
-            UpsampleBlock(nf1, nf2, use_normalizer=True),
-            UpsampleBlock(nf2, nf3, use_normalizer=True),
-            nn.ConvTranspose2d(nf3, nch, 4, 2, 1, bias=False),
+            *up_blocks, # upsampling blocks
+            nn.ConvTranspose2d(
+                nf4 if nf4 else nf3, nch, 4, 2, 1, bias=False),
             nn.Tanh())
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
@@ -73,17 +89,27 @@ class DCGAN_Discriminator(nn.Module):
         nf1 = num_conv_filters
         nf2 = num_conv_filters * 2
         nf3 = num_conv_filters * 4
+        if image_dim == 32:
+            nf4 = None
+        else:
+            nf4 = num_conv_filters * 8
 
         if activation == 'sigmoid':
             last_activation = nn.Sigmoid()  # type: ignore
         else:  # linear activation
             last_activation = nn.Identity()  # type: ignore
 
-        self.net = nn.Sequential(
+        dw_blocks = [
             DownsampleBlock(nf0, nf1, False),
             DownsampleBlock(nf1, nf2, True),
-            DownsampleBlock(nf2, nf3, True),
-            nn.Conv2d(nf3, 1, 4, 1, 0, bias=False),
+            DownsampleBlock(nf2, nf3, True)
+        ]
+        if nf4:
+            dw_blocks.append(DownsampleBlock(nf3, nf4, True))
+
+        self.net = nn.Sequential(
+            *dw_blocks,
+            nn.Conv2d(nf4 if nf4 else nf3, 1, 4, 1, 0, bias=False),
             last_activation)
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:

@@ -33,6 +33,10 @@ def parse_basicfc_train_opts(argv):
         default=defaults.BATCH_SIZE)
 
     parser.add_argument(
+        '--desired_image_size', type=int, required=False,
+        choices=[32, 64], default=32)
+
+    parser.add_argument(
         '--num_epochs', type=int, required=False,
         default=defaults.NUM_EPOCHS)
 
