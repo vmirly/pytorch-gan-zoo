@@ -18,6 +18,7 @@ FC_HIDDEN_UNITS = 128
 
 # evaluation examples
 NUM_EVAL_IMAGES = 64
+NUM_CONV_KERNELS = 64
 
 # Network Parameters
 Z_DIM = 100
@@ -25,6 +26,8 @@ Z_DIM = 100
 NUM_EPOCHS = 100
 DROPOUT_PROBA = 0.5
 PROBA_HFLIP = 0.5
+VALIDATION_SIZE = 32
+BATCH_SIZE = 128
 
 FC_HIDDEN_DIMS = {  # TODO: remove if unused
     names.NAMESTR_VANILLA: 128,
@@ -70,6 +73,7 @@ LEARNING_RATES = {
 ADAM_BETA1 = 0.5
 ADAM_BETA2 = {
     names.NAMESTR_VANILLA: 0.9,
+    names.NAMESTR_DCGAN: 0.999,
     names.NAMESTR_LSGAN: 0.9,
     names.NAMESTR_WGAN: 0.9,
     names.NAMESTR_WGANCLIPPING: 0.9,

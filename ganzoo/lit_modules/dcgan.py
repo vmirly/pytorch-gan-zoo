@@ -13,78 +13,23 @@ import torchvision.datasets as datasets
 
 import pytorch_lightning as pl
 
-from ganzoo.nn_modules import fc_nets
+from ganzoo.nn_modules import dcgan_nets
 from ganzoo.losses import basic_losses
 from ganzoo.constants import defaults
 from ganzoo.misc import ops
 
 
-def get_fc_networks(
-        num_z_units: int,
-        num_hidden_units: int,
-        image_dim: int,
-        image_channels: int,
-        p_drop: float,
-        network_type: str) -> Tuple[torch.nn.Module]:
-
-    if network_type == 'fc-small':
-        generator = fc_nets.FCSmall_Generator(
-            num_z_units=num_z_units,
-            num_hidden_units=num_hidden_units,
-            output_image_dim=image_dim,
-            output_image_channels=image_channels,
-            p_drop=p_drop)
-
-        discriminator = fc_nets.FCSmall_Discriminator(
-            input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
-            num_hidden_units=num_hidden_units,
-            p_drop=p_drop,
-            activation=defaults.DISC_ACTIVATIONS['vanilla'])
-
-    elif network_type == 'fc-skip':
-        generator = fc_nets.FCSkipConnect_Generator(
-            num_z_units=num_z_units,
-            num_hidden_units=num_hidden_units,
-            output_image_dim=image_dim,
-            output_image_channels=image_channels,
-            p_drop=p_drop)
-
-        discriminator = fc_nets.FCSkipConnect_Discriminator(
-            input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
-            num_hidden_units=num_hidden_units,
-            p_drop=p_drop,
-            activation=defaults.DISC_ACTIVATIONS['vanilla'])
-
-    elif network_type == 'fc-large':
-        generator = fc_nets.FCLarge_Generator(
-            num_z_units=num_z_units,
-            num_hidden_units=num_hidden_units,
-            output_image_dim=image_dim,
-            output_image_channels=image_channels,
-            p_drop=p_drop)
-
-        discriminator = fc_nets.FCLarge_Discriminator(
-            input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
-            num_hidden_units=num_hidden_units,
-            p_drop=p_drop,
-            activation=defaults.DISC_ACTIVATIONS['vanilla'])
-
-    return generator, discriminator
-
-
-class LitBasicGANFC(pl.LightningModule):
+class LitDCGAN(pl.LightningModule):
     def __init__(
             self,
             num_z_units: int,
             z_distribution: str,
-            num_hidden_units: int,
+            num_conv_filters: int,
             image_dim: int,
             image_channels: int,
-            p_drop: float,
             lr: float,
             beta1: float,
-            beta2: float,
-            network_type: str):
+            beta2: float):
 
         super().__init__()
         self.save_hyperparameters()
@@ -92,17 +37,26 @@ class LitBasicGANFC(pl.LightningModule):
         self.z_sampler = ops.get_latent_sampler(
             z_dim=num_z_units,
             z_distribution=z_distribution,
-            make_4d=False)
+            make_4d=True)
 
         self.fixed_z = self.z_sampler(batch_size=defaults.VALIDATION_SIZE)
 
-        self.generator, self.discriminator = get_fc_networks(
+        activation = defaults.DISC_ACTIVATIONS['vanilla']
+
+        self.generator = dcgan_nets.DCGAN_Generator(
             num_z_units=num_z_units,
-            num_hidden_units=num_hidden_units,
+            num_conv_filters=num_conv_filters,
+            output_image_dim=image_dim,
+            output_image_channels=image_channels)
+        self.discriminator = dcgan_nets.DCGAN_Discriminator(
             image_dim=image_dim,
             image_channels=image_channels,
-            p_drop=p_drop,
-            network_type=network_type)
+            num_conv_filters=num_conv_filters,
+            activation=activation)
+
+        # initialize networks
+        self.generator.apply(ops.initialize_weights)
+        self.discriminator.apply(ops.initialize_weights)
 
         self.criterion_G = basic_losses.vanilla_gan_lossfn_G
         self.criterion_D_real = basic_losses.vanilla_gan_lossfn_D_real
@@ -148,7 +102,7 @@ class LitBasicGANFC(pl.LightningModule):
         if optimizer_idx == 0:  # train G
             loss_g = _training_step_G(batch_z)
             return {'loss': loss_g}
-        else: # train D
+        else:  # train D
             loss_d = _training_step_D(batch_z, batch_imgs)
             return {'loss': loss_d}
 
@@ -167,7 +121,6 @@ class LitBasicGANFC(pl.LightningModule):
     def on_validation_epoch_end(self):
         batch_z = self.fixed_z.type_as(next(self.generator.parameters()))
         val_gen_imgs = self(batch_z)
-        val_gen_imgs = ops.unnormalize_torch(val_gen_imgs)
         grid = torchvision.utils.make_grid(
             val_gen_imgs, normalize=True, valuerange=(-1, 1))
         self.logger.experiment.add_image(
