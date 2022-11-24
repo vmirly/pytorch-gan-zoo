@@ -34,9 +34,8 @@ def wgan_lossfn_D_fake(d_fake: torch.Tensor) -> torch.Tensor:
 def wgan_gradient_penalty(
         real: torch.Tensor,
         fake: torch.Tensor,
-        discriminator: torch.nn.Module,
-        device: torch.device,
-        epsilon: float) -> torch.Tensor:
+        discriminator: torch.nn.Module) -> torch.Tensor:
+        # epsilon: float) -> torch.Tensor:
 
     if len(real) != len(fake):
         logging.error(
@@ -45,11 +44,8 @@ def wgan_gradient_penalty(
             f'size of fake tensor: {len(fake)}')
         sys.exit(1)
 
-    batch_size = len(real)
-
     # calc. x_hat: random interpolation of real and fake
-
-    alpha = torch.rand(batch_size, 1, 1, 1).to(device)
+    alpha = torch.rand(real.size(0), 1, 1, 1).type_as(real)
 
     x_hat = alpha * real + (1 - alpha) * fake.detach()
     x_hat.requires_grad = True
@@ -58,29 +54,28 @@ def wgan_gradient_penalty(
     d_hat = discriminator(x_hat)
 
     # calc. gradients of d_hat vs. x_hat
-    grad_values = torch.ones(d_hat.size()).to(device)
-    gradients = torch.autograd.grad(
+    grads = torch.autograd.grad(
         outputs=d_hat,
         inputs=x_hat,
-        grad_outputs=grad_values,
+        grad_outputs=torch.ones(d_hat.size()).type_as(real),
         create_graph=True,
         retain_graph=True)[0]
+    grads = grads.view(x_hat.size(0), -1)
 
-    gradients = gradients.view(batch_size, -1)
-
+    # calc. norm of gradients
+    grads_norm = grads.norm(p=2, dim=1)
     # calc. norm of gradients, adding epsilon to prevent 0 values
-    gradients_norm = torch.sqrt(
-        torch.sum(gradients ** 2, dim=1) + epsilon)
+    # gradients_norm = torch.sqrt(
+    #    torch.sum(gradients ** 2, dim=1) + epsilon)
 
-    return ((gradients_norm - 1) ** 2).mean()
+    return ((grads_norm - 1) ** 2)
 
 
 def wgan_lipschitz_penalty(
         real: torch.Tensor,
         fake: torch.Tensor,
-        discriminator: torch.nn.Module,
-        device: torch.device,
-        epsilon: float) -> torch.Tensor:
+        discriminator: torch.nn.Module) -> torch.Tensor:
+        # epsilon: float) -> torch.Tensor:
     """
     Lipschitz penalty for WGAN
     Paper: https://arxiv.org/pdf/1709.08894.pdf
@@ -93,11 +88,8 @@ def wgan_lipschitz_penalty(
             f'size of fake tensor: {len(fake)}')
         sys.exit(1)
 
-    batch_size = len(real)
-
     # calc. x_hat: random interpolation of real and fake
-
-    alpha = torch.rand(batch_size, 1, 1, 1).to(device)
+    alpha = torch.rand(real.size(0), 1, 1, 1).type_as(real)
 
     x_hat = alpha * real + (1 - alpha) * fake.detach()
     x_hat.requires_grad = True
@@ -106,22 +98,18 @@ def wgan_lipschitz_penalty(
     d_hat = discriminator(x_hat)
 
     # calc. gradients of d_hat vs. x_hat
-    grad_values = torch.ones(d_hat.size()).to(device)
-    gradients = torch.autograd.grad(
+    grads = torch.autograd.grad(
         outputs=d_hat,
         inputs=x_hat,
-        grad_outputs=grad_values,
+        grad_outputs=torch.ones(d_hat.size()).type_as(real),
         create_graph=True,
         retain_graph=True)[0]
+    grads = grads.view(x_hat.size(0), -1)
 
-    gradients = gradients.view(batch_size, -1)
+    # calc. norm of gradients
+    grads_norm = grads.norm(p=2, dim=1)
 
-    # calc. norm of gradients, adding epsilon to prevent 0 values
-    gradients_norm = torch.sqrt(
-        torch.sum(gradients ** 2, dim=1) + epsilon)
+    zero = torch.zeros(grads_norm.size(0), 1)
+    one_sided_penalty = (torch.max(zero, (grads_norm - 1)) ** 2).mean()
 
-    zero = torch.zeros(size=(len(gradients_norm), 1)).to(device)
-
-    one_sided_gradients = torch.max(zero, (gradients_norm - 1))
-
-    return (one_sided_gradients ** 2).mean()
+    return one_sided_penalty

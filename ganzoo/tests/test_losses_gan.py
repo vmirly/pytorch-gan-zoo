@@ -45,3 +45,36 @@ def test_wgan_lossfn_D_fake():
     loss_d_fake = wgan_losses.wgan_lossfn_D_fake(t)
     assert np.isclose(loss_d_fake, 0.25, atol=1e-4)
 
+
+def test_wgan_lossfn_gradpenalty():
+    rt = torch.tensor([[1.2, -0.5, 2.5, -2.2]])
+    ft = torch.tensor([[0.6, -0.25, 1.25, -1.1]])
+    discriminator = torch.nn.Linear(4, 1)
+
+    loss_gp = wgan_losses.wgan_gradient_penalty(rt, ft, discriminator)
+
+    # re-compute
+    w = discriminator.weight
+    w_norm = torch.sqrt(torch.sum(w ** 2, dim=1))
+    recomp_gp = ((w_norm - 1) ** 2).mean()
+    assert np.isclose(loss_gp.detach(), recomp_gp.detach(), atol=1e-4)
+
+
+def test_wgan_lossfn_lipschitzpenalty():
+    rt = torch.tensor([[1.2, -0.5, 2.5, -2.2]])
+    ft = torch.tensor([[0.2, 0.5, 1.2, 1.1]])
+    discriminator = torch.nn.Linear(4, 1)
+    def const_init(model):
+        for name, param in model.named_parameters():
+            param.data.uniform_(-2.0, 2.0)
+    const_init(discriminator)
+
+    loss_lp = wgan_losses.wgan_lipschitz_penalty(rt, ft, discriminator)
+
+    # re-compute
+    w = discriminator.weight
+    w_rss = torch.sqrt(torch.sum(w ** 2))  # toot-sum-squared
+    zero = torch.zeros(1).type_as(rt)
+    w_rss_onesided = torch.max(zero, (w_rss - 1))
+    recomp_lp = (w_rss_onesided ** 2).mean()
+    assert np.isclose(loss_lp.detach(), recomp_lp.detach(), atol=1e-4)
