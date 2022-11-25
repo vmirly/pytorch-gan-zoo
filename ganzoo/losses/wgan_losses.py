@@ -52,6 +52,8 @@ def wgan_gradient_penalty(
 
     # calc. d_hat: discriminator output on x_hat
     d_hat = discriminator(x_hat)
+    if not d_hat.grad_fn:
+        return None
 
     # calc. gradients of d_hat vs. x_hat
     grads = torch.autograd.grad(
@@ -68,7 +70,7 @@ def wgan_gradient_penalty(
     # gradients_norm = torch.sqrt(
     #    torch.sum(gradients ** 2, dim=1) + epsilon)
 
-    return ((grads_norm - 1) ** 2)
+    return ((grads_norm - 1) ** 2).mean()
 
 
 def wgan_lipschitz_penalty(
@@ -96,6 +98,8 @@ def wgan_lipschitz_penalty(
 
     # calc. d_hat: discriminator output on x_hat
     d_hat = discriminator(x_hat)
+    if not d_hat.grad_fn:
+        return None
 
     # calc. gradients of d_hat vs. x_hat
     grads = torch.autograd.grad(

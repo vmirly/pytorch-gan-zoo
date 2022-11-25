@@ -89,6 +89,11 @@ def test_wgan_lossfn_gradpenalty():
     # test the backward
     loss_d_gp.backward()
 
+    with torch.no_grad():
+        loss_d_gp = wgan_losses.wgan_gradient_penalty(rt, ft, discriminator)
+        # this loss must be None
+        assert not loss_d_gp
+
 
 def test_wgan_lossfn_lipschitzpenalty():
     rt = torch.tensor([[1.2, -0.5, 2.5, -2.2]])
@@ -111,3 +116,8 @@ def test_wgan_lossfn_lipschitzpenalty():
 
     # test the backward
     loss_d_lp.backward()
+
+    with torch.no_grad():
+        loss_l_gp = wgan_losses.wgan_lipschitz_penalty(rt, ft, discriminator)
+        # this loss must be None
+        assert not loss_l_gp
