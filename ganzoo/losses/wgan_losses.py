@@ -113,7 +113,7 @@ def wgan_lipschitz_penalty(
     # calc. norm of gradients
     grads_norm = grads.norm(p=2, dim=1)
 
-    zero = torch.zeros(grads_norm.size(0), 1)
+    zero = torch.zeros(grads_norm.size(0), 1).type_as(grads_norm)
     one_sided_penalty = (torch.max(zero, (grads_norm - 1)) ** 2).mean()
 
     return one_sided_penalty
