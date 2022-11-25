@@ -14,7 +14,7 @@ import torchvision.datasets as datasets
 import pytorch_lightning as pl
 
 from ganzoo.nn_modules import fc_nets
-from ganzoo.losses import basic_losses
+from ganzoo.losses import basic_losses, wgan_losses
 from ganzoo.constants import defaults
 from ganzoo.misc import ops
 
@@ -25,8 +25,10 @@ def get_fc_networks(
         image_dim: int,
         image_channels: int,
         p_drop: float,
-        network_type: str) -> Tuple[torch.nn.Module]:
+        network_type: str,
+        loss_type: str) -> Tuple[torch.nn.Module]:
 
+    activation = defaults.DISC_ACTIVATIONS[loss_type]
     if network_type == 'fc-small':
         generator = fc_nets.FCSmall_Generator(
             num_z_units=num_z_units,
@@ -39,7 +41,7 @@ def get_fc_networks(
             input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
             num_hidden_units=num_hidden_units,
             p_drop=p_drop,
-            activation=defaults.DISC_ACTIVATIONS['vanilla'])
+            activation=activation)
 
     elif network_type == 'fc-skip':
         generator = fc_nets.FCSkipConnect_Generator(
@@ -53,7 +55,7 @@ def get_fc_networks(
             input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
             num_hidden_units=num_hidden_units,
             p_drop=p_drop,
-            activation=defaults.DISC_ACTIVATIONS['vanilla'])
+            activation=activation)
 
     elif network_type == 'fc-large':
         generator = fc_nets.FCLarge_Generator(
@@ -67,7 +69,7 @@ def get_fc_networks(
             input_feature_dim=np.prod([image_dim, image_dim, image_channels]),
             num_hidden_units=num_hidden_units,
             p_drop=p_drop,
-            activation=defaults.DISC_ACTIVATIONS['vanilla'])
+            activation=activation)
 
     return generator, discriminator
 
@@ -84,7 +86,8 @@ class LitBasicGANFC(pl.LightningModule):
             lr: float,
             beta1: float,
             beta2: float,
-            network_type: str):
+            network_type: str,
+            loss_type: str):
 
         super().__init__()
         self.save_hyperparameters()
@@ -102,11 +105,23 @@ class LitBasicGANFC(pl.LightningModule):
             image_dim=image_dim,
             image_channels=image_channels,
             p_drop=p_drop,
-            network_type=network_type)
+            network_type=network_type,
+            loss_type=loss_type)
 
-        self.criterion_G = basic_losses.vanilla_gan_lossfn_G
-        self.criterion_D_real = basic_losses.vanilla_gan_lossfn_D_real
-        self.criterion_D_fake = basic_losses.vanilla_gan_lossfn_D_fake
+        if loss_type == 'basic':
+            self.criterion_G = basic_losses.vanilla_gan_lossfn_G
+            self.criterion_D_real = basic_losses.vanilla_gan_lossfn_D_real
+            self.criterion_D_fake = basic_losses.vanilla_gan_lossfn_D_fake
+        elif loss_type in ('wgan', 'wgan-gp', 'wgan-lp'):
+            self.criterion_G = wgan_losses.wgan_lossfn_G
+            self.criterion_D_real = wgan_losses.wgan_lossfn_D_real
+            self.criterion_D_fake = wgan_losses.wgan_lossfn_D_fake
+            if loss_type == 'wgan-gp':
+                self.criterion_regularization = wgan_losses.wgan_gradient_penalty
+            else:
+                self.criterion_regularization = wgan_losses.wgan_lipschitz_penalty
+        else:
+            pass  # TODO
 
     def forward(self, z):
         return self.generator(z)
@@ -138,8 +153,21 @@ class LitBasicGANFC(pl.LightningModule):
             loss_d_real = self.criterion_D_real(d_real)
             d_fake = self.discriminator(gen_images)
             loss_d_fake = self.criterion_D_fake(d_fake)
-            loss_d = 0.5 * (loss_d_real + loss_d_fake)
+            #if self.hparams.loss_type == 'basic':
+            loss_d = loss_d_real + loss_d_fake
+            #loss_d_reg = None
+            #elif self.hparams.loss_type in ('wgan', 'wgan-gp', 'wgan-lp'):
+            #    loss_d = loss_d_real + loss_d_fake
+            #        loss_d_reg = None
             self.log("D-loss", loss_d, prog_bar=True)
+
+            if self.hparams.loss_type in ('wgan-gp', 'wgan-lp'):
+                loss_d_reg = self.criterion_regularization(
+                    batch_real_images, gen_images, self.discriminator)
+                # within torch.no_grad context, the output is None
+                if loss_d_reg is not None:
+                    self.log("D-loss_reg", loss_d_reg, prog_bar=True)
+                    return loss_d + loss_d_reg
             return loss_d
 
         batch_imgs, _ = batch_data
