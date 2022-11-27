@@ -11,7 +11,7 @@ from torchvision import transforms as T
 
 from ganzoo.lit_modules import basic_fc_gan
 from ganzoo.lit_modules import lit_data_vision
-from ganzoo.run.basic_gan import parsers
+from ganzoo.run.basic_gan import parser_fc as pareser
 from ganzoo.misc import utils
 
 
