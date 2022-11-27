@@ -43,8 +43,8 @@ def parse_basicfc_train_opts(argv):
 
     parser.add_argument(
         '--loss_type', type=str, required=False,
-        choices=['basic', 'wgan', 'wgan-gp', 'wgan-lp'],
-        default='basic')
+        choices=['vanilla', 'wgan', 'wgan-gp', 'wgan-lp'],
+        default='vanilla')
 
     args = parser.parse_args()
     return args

@@ -6,7 +6,6 @@ Author: Vahid Mirjalili
 from typing import Callable, Tuple
 import numpy as np
 import torch
-from torch.utils.data import random_split, DataLoader
 import torchvision
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
@@ -108,7 +107,7 @@ class LitBasicGANFC(pl.LightningModule):
             network_type=network_type,
             loss_type=loss_type)
 
-        if loss_type == 'basic':
+        if loss_type == 'vanilla':
             self.criterion_G = basic_losses.vanilla_gan_lossfn_G
             self.criterion_D_real = basic_losses.vanilla_gan_lossfn_D_real
             self.criterion_D_fake = basic_losses.vanilla_gan_lossfn_D_fake

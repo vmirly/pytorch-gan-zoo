@@ -12,7 +12,7 @@ from torchvision import transforms as T
 
 from ganzoo.lit_modules import dcgan
 from ganzoo.lit_modules import lit_data_vision
-from ganzoo.examples.dcgan import parsers
+from ganzoo.run.dcgan import parsers
 from ganzoo.misc import utils
 
 
