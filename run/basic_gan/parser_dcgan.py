@@ -40,5 +40,10 @@ def parse_basicfc_train_opts(argv):
         '--num_epochs', type=int, required=False,
         default=defaults.NUM_EPOCHS)
 
+    parser.add_argument(
+        '--loss_type', type=str, required=False,
+        choices=['vanilla', 'wgan', 'wgan-gp', 'wgan-lp'],
+        default='vanilla')
+
     args = parser.parse_args()
     return args

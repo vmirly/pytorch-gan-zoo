@@ -11,8 +11,8 @@ from torchvision import transforms as T
 
 from ganzoo.lit_modules import basic_fc_gan
 from ganzoo.lit_modules import lit_data_vision
-from ganzoo.run.basic_gan import parser_fc as pareser
 from ganzoo.misc import utils
+from run.basic_gan import parser_fc as parser
 
 
 def main(args):
@@ -53,7 +53,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = parsers.parse_basicfc_train_opts(sys.argv[1:])
+    args = parser.parse_basicfc_train_opts(sys.argv[1:])
     msg = main(args)
     if msg:
         logging.error(msg)

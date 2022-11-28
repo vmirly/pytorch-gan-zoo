@@ -12,8 +12,8 @@ from torchvision import transforms as T
 
 from ganzoo.lit_modules import dcgan
 from ganzoo.lit_modules import lit_data_vision
-from ganzoo.run.dcgan import parser_dcgan as parser
 from ganzoo.misc import utils
+from run.basic_gan import parser_dcgan as parser
 
 
 def main(args):
@@ -35,7 +35,8 @@ def main(args):
         num_conv_filters=args.num_conv_filters,
         image_dim=args.desired_image_size,
         image_channels=image_channels,
-        lr=0.001, beta1=0.5, beta2=0.9
+        lr=0.001, beta1=0.5, beta2=0.9,
+        loss_type=args.loss_type
     )
 
     if image_channels == 3:
@@ -65,7 +66,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = parsers.parse_basicfc_train_opts(sys.argv[1:])
+    args = parser.parse_basicfc_train_opts(sys.argv[1:])
     msg = main(args)
     if msg:
         logging.error(msg)
