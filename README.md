@@ -5,13 +5,13 @@
 Train and evaluate basic FC-GAN:
 ```
 # train on fashion-mnist
-python -m ganzoo.examples.basic_gan.train_fc \
+python -m run.basic_gan.train_fc \
     --z_dim=100 --num_hidden_units=256 \
     --network_type=fc-large \
     --dataset_name=fashion-mnist
 
 # evaluate
-python -m ganzoo.examples.basic_gan.eval_fc \
+python -m run.basic_gan.eval_fc \
     lightning_logs/version_1/checkpoints/epoch\=99-step\=337600.ckpt \
     --output_dir lightning_logs/version_1/outputs
 ```
