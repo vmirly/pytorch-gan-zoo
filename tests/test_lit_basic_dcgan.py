@@ -26,7 +26,8 @@ def test_lit_train_dcgan():
         image_channels=arr_x.shape[1],
         lr=0.1,
         beta1=0.5,
-        beta2=0.9)
+        beta2=0.9,
+        loss_type='vanilla')
 
     trainer = pl.Trainer(max_epochs=1)
     trainer.fit(model, dm)

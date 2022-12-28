@@ -43,5 +43,5 @@ setup(
     maintainer=AUTHOR,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=find_packages(include=['ganzoo', 'ganzoo.*'])
+    packages=find_packages(include=['ganzoo', 'ganzoo.*', 'run.*'])
 )

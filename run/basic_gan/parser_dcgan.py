@@ -13,7 +13,7 @@ def parse_basicfc_train_opts(argv):
     
     parser.add_argument(
         '--dataset_name', type=str, required=True,  # TODO: add custom-folder 
-        choices=names.DOWNLOADABLE_DATASETS)
+        choices=names.DOWNLOADABLE_DATASETS + [names.NAMESTR_CELEBA])
 
     parser.add_argument(
         '--z_dim', type=int, required=False,
@@ -25,21 +25,25 @@ def parse_basicfc_train_opts(argv):
         choices=names.LIST_DISTRBUTIONS)
 
     parser.add_argument(
-        '--network_type', type=str,
-        default=names.NAMESTR_FCSKIP,
-        choices=names.LIST_FC_NETWORKS)
+        '--num_conv_filters', type=int,
+        default=defaults.NUM_CONV_KERNELS)
 
     parser.add_argument(
-        '--num_hidden_units', type=int,
-        default=defaults.FC_HIDDEN_UNITS)
+        '--batch_size', type=int,
+        default=defaults.BATCH_SIZE)
 
     parser.add_argument(
-        '--p_drop', type=float, required=False,
-        default=defaults.DROPOUT_PROBA)
+        '--desired_image_size', type=int, required=False,
+        choices=[32, 64], default=32)
 
     parser.add_argument(
         '--num_epochs', type=int, required=False,
         default=defaults.NUM_EPOCHS)
+
+    parser.add_argument(
+        '--loss_type', type=str, required=False,
+        choices=['vanilla', 'wgan', 'wgan-gp', 'wgan-lp'],
+        default='vanilla')
 
     args = parser.parse_args()
     return args

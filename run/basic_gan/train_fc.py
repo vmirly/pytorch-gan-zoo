@@ -11,8 +11,8 @@ from torchvision import transforms as T
 
 from ganzoo.lit_modules import basic_fc_gan
 from ganzoo.lit_modules import lit_data_vision
-from ganzoo.examples.basic_gan import parsers
 from ganzoo.misc import utils
+from run.basic_gan import parser_fc as parser
 
 
 def main(args):
@@ -33,7 +33,8 @@ def main(args):
         image_dim=image_dim, image_channels=image_channels,
         p_drop=args.p_drop,
         lr=0.001, beta1=0.5, beta2=0.9,
-        network_type=args.network_type)
+        network_type=args.network_type,
+        loss_type=args.loss_type)
 
     trsfm = T.Compose([T.ToTensor(), T.Normalize(mean=0.5, std=0.5)])
 
@@ -52,7 +53,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    args = parsers.parse_basicfc_train_opts(sys.argv[1:])
+    args = parser.parse_basicfc_train_opts(sys.argv[1:])
     msg = main(args)
     if msg:
         logging.error(msg)

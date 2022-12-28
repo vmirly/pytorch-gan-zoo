@@ -14,7 +14,7 @@ import torchvision.datasets as datasets
 import pytorch_lightning as pl
 
 from ganzoo.nn_modules import dcgan_nets
-from ganzoo.losses import basic_losses
+from ganzoo.losses import basic_losses, wgan_losses
 from ganzoo.constants import defaults
 from ganzoo.misc import ops
 
@@ -29,7 +29,8 @@ class LitDCGAN(pl.LightningModule):
             image_channels: int,
             lr: float,
             beta1: float,
-            beta2: float):
+            beta2: float,
+            loss_type: str):
 
         super().__init__()
         self.save_hyperparameters()
@@ -58,9 +59,20 @@ class LitDCGAN(pl.LightningModule):
         self.generator.apply(ops.initialize_weights)
         self.discriminator.apply(ops.initialize_weights)
 
-        self.criterion_G = basic_losses.vanilla_gan_lossfn_G
-        self.criterion_D_real = basic_losses.vanilla_gan_lossfn_D_real
-        self.criterion_D_fake = basic_losses.vanilla_gan_lossfn_D_fake
+        if loss_type == 'vanilla':
+            self.criterion_G = basic_losses.vanilla_gan_lossfn_G
+            self.criterion_D_real = basic_losses.vanilla_gan_lossfn_D_real
+            self.criterion_D_fake = basic_losses.vanilla_gan_lossfn_D_fake
+        elif loss_type in ['wgan', 'wgan-gp', 'wgan-lp']:
+            self.criterion_G = wgan_losses.wgan_lossfn_G
+            self.criterion_D_real = wgan_losses.wgan_lossfn_D_real
+            self.criterion_D_fake = wgan_losses.wgan_lossfn_D_fake
+            if loss_type == 'wgan-gp':
+                self.criterion_regularization = wgan_losses.wgan_gradient_penalty
+            else:
+                self.criterion_regularization = wgan_losses.wgan_lipschitz_penalty
+        else:
+            pass  # TODO
 
     def forward(self, z):
         return self.generator(z)
